@@ -46,8 +46,6 @@ public class ClientThreadIn extends Thread {
 
 				if (remoteMessage != null && remoteMessage.equals("{TERMINATE}")) {
 					System.out.println("\nSomeone has terminated you from the chat. . .\n");
-					this.clientSocket.close();
-					this.input.close();
 					this.st.isConnected();
 					break;
 				}
