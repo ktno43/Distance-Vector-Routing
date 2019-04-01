@@ -1,4 +1,3 @@
-
 /*-
  ****************************************
  * Kyle Nguyen
@@ -14,7 +13,7 @@
  * message exchange among remote peers.
  * 
  * ClientThreadIn.java
- * Version 2.0
+ * Version 3.0
  ****************************************/
 import java.io.BufferedReader;
 import java.io.IOException;
@@ -51,13 +50,13 @@ public class ClientThreadIn extends Thread {
 				}
 
 				if (remoteMessage != null && remoteMessage.equals("{TERMINATE}")) { // Client was terminated
-					System.out.println("\nSomeone has terminated you from the chat. . .\n");
+					System.out.println("\nSomeone has terminated you from their chat. . .\n");
 					this.st.checkConnection(); // Check connections
 					flag = false;
 				}
 
 				else if (remoteMessage != null && remoteMessage.equals("{EXIT}")) { // Someone left the chat
-					System.out.println("\nSomeone has left the chat. . .\n");
+					System.out.println("\nSomeone has left the chat room. . .\n");
 					this.st.checkConnection(); // Check connections
 				}
 

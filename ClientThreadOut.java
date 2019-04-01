@@ -13,7 +13,7 @@
  * message exchange among remote peers.
  * 
  * ClientThreadOut.java
- * Version 2.0
+ * Version 3.0
  ****************************************/
 import java.io.IOException;
 import java.io.PrintStream;

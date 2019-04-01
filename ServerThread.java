@@ -13,7 +13,7 @@
  * message exchange among remote peers.
  * 
  * ServerThread.java
- * Version 2.0
+ * Version 3.0
  ****************************************/
 import java.io.BufferedReader;
 import java.io.IOException;
@@ -38,7 +38,7 @@ public class ServerThread extends Thread {
 			// start the server...
 
 			boolean listenFlag = true;
-			
+
 			System.out.println("Listening for connections on port: " + this.listeningPort + "\n");
 			// and listen for connections
 			while (listenFlag) { // While listening
