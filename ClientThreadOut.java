@@ -27,7 +27,7 @@ public class ClientThreadOut extends Thread {
 	}
 
 	@Override
-	public void run() {
+	public synchronized void run() {
 		while (this.clientSocket == null) {
 			System.out.println("Socket Failed.. retry in 10 sec");
 			try {// ..retry in 10 secs

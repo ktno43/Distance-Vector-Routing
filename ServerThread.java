@@ -130,39 +130,28 @@ public class ServerThread extends Thread {
 			System.out.println("\nID is incorrect");
 
 		else {
-			ClientThreadOut deletedClient = clientVectorOut.remove(id - 1);
+			ClientThreadOut cto = clientVectorOut.get(id - 1);
+			cto.send("{TERMINATE}");
 
-			if (!deletedClient.clientSocket.isClosed()) {
-				deletedClient.clientSocket.close();
-			}
-			int deletedServerPort = deletedClient.getListenPort();
+			if (!clientVectorIn.isEmpty())
+				this.clientVectorIn.remove(id - 1);
 
-			for (int i = 0; i < clientVectorIn.size(); i++) {
-				if (clientVectorIn.get(i).serverPort == deletedServerPort) {
-					if (!clientVectorIn.get(i).clientSocket.isClosed()) {
-						clientVectorIn.get(i).clientSocket.close();
-					}
-					clientVectorIn.remove(i);
-					break;
-				}
-			}
+			if (!clientVectorOut.isEmpty())
+				this.clientVectorOut.remove(id - 1);
+
+			cto.clientSocket.close();
+			cto.out.close();
 		}
 	}
 
-	protected synchronized boolean isConnected() {
+	protected boolean isConnected() {
 		for (int i = 0; i < clientVectorIn.size(); i++) { // check for closed inPorts
-
 			try {
-				if (!clientVectorIn.get(i).clientSocket.isClosed()
-						&& clientVectorIn.get(i).clientSocket.getInputStream().read() == -1) {
+				if (clientVectorIn.get(i).clientSocket.isClosed()
+						|| clientVectorIn.get(i).clientSocket.getInputStream().read() == -1) {
 
-					if (!clientVectorIn.get(i).exited) {
-						System.out.println("\nSomeone has terminated you from the chat. . .\n");
-					}
-
-					if (!clientVectorIn.isEmpty()) {
+					if (!clientVectorIn.isEmpty())
 						this.clientVectorIn.remove(i);
-					}
 
 					if (!clientVectorOut.isEmpty())
 						this.clientVectorOut.remove(i);
@@ -170,34 +159,10 @@ public class ServerThread extends Thread {
 					return false;
 				}
 			} catch (IOException e) {
-				System.out.print("");
-
-				if (!clientVectorIn.isEmpty()) {
-					this.clientVectorIn.remove(i);
-				}
-
-				if (!clientVectorOut.isEmpty())
-					this.clientVectorOut.remove(i);
 
 			}
 		}
 
 		return true;
-
-	}
-
-	private void swapPos(int start) {
-		for (int i = start; i < this.clientVectorIn.size(); i++) {
-			ClientThreadIn temp = this.clientVectorIn.get(i);
-			this.clientVectorIn.set(i - 1, temp);
-		}
-		this.clientVectorIn.remove(this.clientVectorIn.size() - 1);
-
-		for (int i = start; i < this.clientVectorOut.size(); i++) {
-			ClientThreadOut temp = this.clientVectorOut.get(i);
-			this.clientVectorOut.set(i - 1, temp);
-		}
-		this.clientVectorOut.remove(this.clientVectorOut.size() - 1);
-
 	}
 }

@@ -20,7 +20,7 @@ public class ClientThreadIn extends Thread {
 	}
 
 	@Override
-	public void run() {
+	public synchronized void run() {
 		while (this.clientSocket == null) {
 			System.out.println("Socket Failed.. retry in 10 sec");
 			try {// ..retry in 10 secs
@@ -37,10 +37,6 @@ public class ClientThreadIn extends Thread {
 			try {
 				String remoteMessage = input.readLine();
 
-				if (remoteMessage == null && !this.st.isConnected()) {
-					break;
-				}
-
 				if (remoteMessage != null && !firstMsg) {
 					StringBuilder sb = new StringBuilder(remoteMessage);
 					if (remoteMessage != null && remoteMessage.charAt(0) != '{')
@@ -48,10 +44,18 @@ public class ClientThreadIn extends Thread {
 					firstMsg = true;
 				}
 
-				if (remoteMessage != null && remoteMessage.equals("{EXIT}")) {
-					System.out.println("\nSomeone has left the chat. . .\n");
-					exited = true;
+				if (remoteMessage != null && remoteMessage.equals("{TERMINATE}")) {
+					System.out.println("\nSomeone has terminated you from the chat. . .\n");
+					this.clientSocket.close();
+					this.input.close();
 					this.st.isConnected();
+					break;
+				}
+
+				else if (remoteMessage != null && remoteMessage.equals("{EXIT}")) {
+					System.out.println("\nSomeone has left the chat. . .\n");
+					this.st.isConnected();
+					break;
 				}
 
 				else if (remoteMessage != null && !remoteMessage.isEmpty() && isMessage(remoteMessage)) {
