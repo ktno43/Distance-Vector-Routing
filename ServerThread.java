@@ -13,7 +13,7 @@
  * message exchange among remote peers.
  * 
  * ServerThread.java
- * Version 3.0
+ * Version 4.0
  ****************************************/
 import java.io.BufferedReader;
 import java.io.IOException;
@@ -55,21 +55,21 @@ public class ServerThread extends Thread {
 				clientVectorIn.add(connectedClient); // Add it to the vector list
 
 				BufferedReader input = connectedClient.input; // Buffered reader for the connected client
-				String remoteMessage = input.readLine(); // Read in the remote message(client's listening port)
+				String clientPort = input.readLine(); // Read in the remote message(client's listening port)
 
-				connectedClient.serverPort = Integer.parseInt(remoteMessage); // Set the connected client's listening port
+				connectedClient.serverPort = Integer.parseInt(clientPort); // Set the connected client's listening port
 
 				boolean breakout = false; // Flag for breakout
 
 				for (ClientThreadOut cto : clientVectorOut) { // For all of the connected clients
 					if (cto.getIp().equals(connectedClient.getIp()) && cto.getPort() == connectedClient.serverPort) { // If their IP and ports are the same
-						connectedClient.start(); // Go ahead and star the client's input thread
+						connectedClient.start(); // Go ahead and start the client's input thread
 						breakout = true; // toggle flag
 					}
 				}
 
 				if (!breakout) { // If not breakout, keep listening for connections
-					Socket s = new Socket(sock.getInetAddress().getHostAddress(), Integer.parseInt(remoteMessage)); // If it's a new IP, then create a new socket
+					Socket s = new Socket(sock.getInetAddress().getHostAddress(), Integer.parseInt(clientPort)); // If it's a new IP, then create a new socket
 					ClientThreadOut cto = new ClientThreadOut(s); // Create a new client output for the given socket
 					clientVectorOut.add(cto); // Add the current client to the client's output vector
 					cto.send(Integer.toString(listeningPort)); // Send the listening port of the current system to the connected client's output thread
