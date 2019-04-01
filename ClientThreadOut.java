@@ -13,9 +13,8 @@
  * message exchange among remote peers.
  * 
  * ClientThreadOut.java
- * Version 1.0
+ * Version 2.0
  ****************************************/
-
 import java.io.IOException;
 import java.io.PrintStream;
 import java.net.Socket;
@@ -34,7 +33,6 @@ public class ClientThreadOut {
 			clientSocket.setReuseAddress(true);
 			this.listeningPort = listenPort;
 			this.ip = ip;
-
 			clientMessage = "";
 			out = new PrintStream(clientSocket.getOutputStream()); // Create output stream for the client
 
@@ -48,7 +46,6 @@ public class ClientThreadOut {
 		this.clientSocket = sock;
 		ip = sock.getInetAddress().getHostAddress();
 		clientMessage = "";
-
 		out = new PrintStream(clientSocket.getOutputStream());
 	}
 

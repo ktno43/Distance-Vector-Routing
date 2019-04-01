@@ -1,4 +1,3 @@
-
 /*-
  ****************************************
  * Kyle Nguyen
@@ -47,10 +46,11 @@ public class ClientThreadIn extends Thread {
 					StringBuilder sb = new StringBuilder(remoteMessage);
 					if (remoteMessage.charAt(0) != '{')
 						remoteMessage = sb.insert(0, '{').toString();
+
 					firstMsg = true;
 				}
 
-				if (remoteMessage != null && remoteMessage.equals("{TERMINATE}")) { // Client was terminated
+				else if (remoteMessage != null && remoteMessage.equals("{TERMINATE}")) { // Client was terminated
 					System.out.println("\nSomeone has terminated you from the chat. . .\n");
 					this.st.checkConnection(); // Check connections
 					flag = false;
@@ -70,7 +70,7 @@ public class ClientThreadIn extends Thread {
 				}
 
 			} catch (IOException e) {
-				System.out.print("Error when reading line");
+				// Ignore error message, termination/exit already handled exceptions
 			}
 		}
 	}

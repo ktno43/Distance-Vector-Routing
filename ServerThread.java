@@ -1,4 +1,3 @@
-
 /*-
  ****************************************
  * Kyle Nguyen
@@ -39,7 +38,7 @@ public class ServerThread extends Thread {
 			// start the server...
 
 			boolean listenFlag = true;
-			Socket s = new Socket();
+			
 			System.out.println("Listening for connections on port: " + this.listeningPort + "\n");
 			// and listen for connections
 			while (listenFlag) { // While listening
@@ -70,7 +69,7 @@ public class ServerThread extends Thread {
 				}
 
 				if (!breakout) { // If not breakout, keep listening for connections
-					s = new Socket(sock.getInetAddress().getHostAddress(), Integer.parseInt(remoteMessage)); // If it's a new IP, then create a new socket
+					Socket s = new Socket(sock.getInetAddress().getHostAddress(), Integer.parseInt(remoteMessage)); // If it's a new IP, then create a new socket
 					ClientThreadOut cto = new ClientThreadOut(s); // Create a new client output for the given socket
 					clientVectorOut.add(cto); // Add the current client to the client's output vector
 					cto.send(Integer.toString(listeningPort)); // Send the listening port of the current system to the connected client's output thread
