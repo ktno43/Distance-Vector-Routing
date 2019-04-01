@@ -69,18 +69,18 @@ public class ServerThread extends Thread {
 					}
 				}
 
-				if (breakout) // If breakout, break and keep listening for connections
-					break;
+				if (!breakout) { // If not breakout, keep listening for connections
 
-				s = new Socket(sock.getInetAddress().getHostAddress(), Integer.parseInt(remoteMessage)); // If it's a new IP, then create a new socket
-				ClientThreadOut cto = new ClientThreadOut(s); // Create a new client output for the given socket
-				clientVectorOut.add(cto); // Add the current client to the client's output vector
-				cto.send(Integer.toString(listeningPort)); // Send the listening port of the current system to the connected client's output thread
+					s = new Socket(sock.getInetAddress().getHostAddress(), Integer.parseInt(remoteMessage)); // If it's a new IP, then create a new socket
+					ClientThreadOut cto = new ClientThreadOut(s); // Create a new client output for the given socket
+					clientVectorOut.add(cto); // Add the current client to the client's output vector
+					cto.send(Integer.toString(listeningPort)); // Send the listening port of the current system to the connected client's output thread
 
-				connectedClient.start(); // Start the client's input thread
+					connectedClient.start(); // Start the client's input thread
+				}
+
+				isConnected(); // Check the connections within the vector and continue to listen for connections
 			}
-			
-			isConnected(); // Check the connections within the vector and continue to listen for connections
 
 		} catch (IOException ioe) {
 			System.out.println(ioe.getMessage());
