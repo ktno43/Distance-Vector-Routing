@@ -37,7 +37,7 @@ public class ClientThreadIn extends Thread {
 	}
 
 	@Override
-	public synchronized void run() { // Input thread for the client
+	public void run() { // Input thread for the client
 		boolean flag = true;
 		while (flag) {
 			try {
@@ -72,14 +72,6 @@ public class ClientThreadIn extends Thread {
 			} catch (IOException e) {
 				System.out.print("");
 			}
-		}
-
-		try { // Tread finished, attempt to close it
-			this.clientSocket.close();
-			this.input.close();
-
-		} catch (IOException e) {
-			e.printStackTrace();
 		}
 	}
 

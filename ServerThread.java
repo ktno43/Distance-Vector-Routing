@@ -1,3 +1,4 @@
+
 /*-
  ****************************************
  * Kyle Nguyen
@@ -33,11 +34,12 @@ public class ServerThread extends Thread {
 	}
 
 	@Override
-	public synchronized void run() {
+	public void run() {
 		try (ServerSocket ss = new ServerSocket(this.listeningPort)) { // Try to make a server socket for the current port
 			// start the server...
 
 			boolean listenFlag = true;
+			Socket s = new Socket();
 			System.out.println("Listening for connections on port: " + this.listeningPort + "\n");
 			// and listen for connections
 			while (listenFlag) { // While listening
@@ -70,19 +72,17 @@ public class ServerThread extends Thread {
 				if (breakout) // If breakout, break and keep listening for connections
 					break;
 
-				Socket s = new Socket(sock.getInetAddress().getHostAddress(), Integer.parseInt(remoteMessage)); // If it's a new IP, then create a new socket
+				s = new Socket(sock.getInetAddress().getHostAddress(), Integer.parseInt(remoteMessage)); // If it's a new IP, then create a new socket
 				ClientThreadOut cto = new ClientThreadOut(s); // Create a new client output for the given socket
 				clientVectorOut.add(cto); // Add the current client to the client's output vector
 				cto.send(Integer.toString(listeningPort)); // Send the listening port of the current system to the connected client's output thread
 
 				connectedClient.start(); // Start the client's input thread
 			}
-
+			
 			isConnected(); // Check the connections within the vector and continue to listen for connections
 
-		} catch (
-
-		IOException ioe) {
+		} catch (IOException ioe) {
 			System.out.println(ioe.getMessage());
 			ioe.printStackTrace(System.err);
 		}
@@ -185,6 +185,7 @@ public class ServerThread extends Thread {
 		else { // Valid ID
 			ClientThreadOut cto = clientVectorOut.get(id - 1); // Get the client's output thread
 			ClientThreadIn cti = clientVectorIn.get(id - 1); // Get the client's input thread
+
 			cto.send("{TERMINATE}"); // Send a message to the client that they are terminated
 
 			if (!clientVectorIn.isEmpty()) // As long as the input vector is not empty
@@ -205,10 +206,8 @@ public class ServerThread extends Thread {
 	 * Checks to see if the connections are
 	 * still connected
 	 * If not, remove them from the list
-	 * 
-	 * @return- Connected or not
 	 ******************************************/
-	protected boolean isConnected() {
+	protected void isConnected() {
 		for (int i = 0; i < clientVectorIn.size(); i++) { // Check all the client's input vector
 			try {
 				if (clientVectorIn.get(i).clientSocket.isClosed() || clientVectorOut.get(i).clientSocket.isClosed()
@@ -219,14 +218,10 @@ public class ServerThread extends Thread {
 
 					if (!clientVectorOut.isEmpty()) // If not empty remove it from the output vector
 						this.clientVectorOut.remove(i);
-
-					return false; // Not connected
 				}
 			} catch (IOException e) {
 				System.out.print("");
 			}
 		}
-
-		return true; // Is connected
 	}
 }
