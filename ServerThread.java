@@ -126,8 +126,6 @@ public class ServerThread extends Thread {
 
 	protected void terminate(int id) throws IOException {
 
-		// swapPos(id);
-
 		if (id <= 0 || id > clientVectorOut.size())
 			System.out.println("\nID is incorrect");
 
@@ -136,7 +134,17 @@ public class ServerThread extends Thread {
 
 			if (!deletedClient.clientSocket.isClosed()) {
 				deletedClient.clientSocket.close();
-				deletedClient.out.close();
+			}
+			int deletedServerPort = deletedClient.getListenPort();
+
+			for (int i = 0; i < clientVectorIn.size(); i++) {
+				if (clientVectorIn.get(i).serverPort == deletedServerPort) {
+					if (!clientVectorIn.get(i).clientSocket.isClosed()) {
+						clientVectorIn.get(i).clientSocket.close();
+					}
+					clientVectorIn.remove(i);
+					break;
+				}
 			}
 		}
 	}
