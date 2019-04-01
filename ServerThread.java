@@ -131,6 +131,7 @@ public class ServerThread extends Thread {
 
 		else {
 			ClientThreadOut cto = clientVectorOut.get(id - 1);
+			ClientThreadIn cti = clientVectorIn.get(id - 1);
 			cto.send("{TERMINATE}");
 
 			if (!clientVectorIn.isEmpty())
@@ -141,13 +142,16 @@ public class ServerThread extends Thread {
 
 			cto.clientSocket.close();
 			cto.out.close();
+
+			cti.clientSocket.close();
+			cti.input.close();
 		}
 	}
 
 	protected boolean isConnected() {
 		for (int i = 0; i < clientVectorIn.size(); i++) { // check for closed inPorts
 			try {
-				if (clientVectorIn.get(i).clientSocket.isClosed()
+				if (clientVectorIn.get(i).clientSocket.isClosed() || clientVectorOut.get(i).clientSocket.isClosed()
 						|| clientVectorIn.get(i).clientSocket.getInputStream().read() == -1) {
 
 					if (!clientVectorIn.isEmpty())
