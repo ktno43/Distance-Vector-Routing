@@ -4,24 +4,19 @@ import java.io.InputStreamReader;
 import java.net.Socket;
 
 public class ClientThreadIn extends Thread {
-
-	int toPort;
-	Socket clientSocket;
-	int listeningPort;
-	BufferedReader input;
-	public int serverPort;
-	ServerThread st;
-	boolean firstMsg;
-	boolean removedFromVector;
-	boolean terminated;
+	protected Socket clientSocket;
+	protected BufferedReader input;
+	protected int serverPort;
+	protected ServerThread st;
+	protected boolean firstMsg;
+	protected boolean exited;
 
 	ClientThreadIn(Socket sock, ServerThread serverThread) throws IOException {
 		this.clientSocket = sock;
 		input = new BufferedReader(new InputStreamReader(clientSocket.getInputStream()));
 		this.st = serverThread;
 		this.firstMsg = false;
-		this.removedFromVector = false;
-		this.terminated = false;
+		this.exited = false;
 	}
 
 	@Override
@@ -37,13 +32,12 @@ public class ClientThreadIn extends Thread {
 		}
 
 		// sock != null -> connection established
-		try {
-			while (true) {
 
+		while (true) {
+			try {
 				String remoteMessage = input.readLine();
 
 				if (remoteMessage == null && !this.st.isConnected()) {
-					terminated = true;
 					break;
 				}
 
@@ -54,7 +48,13 @@ public class ClientThreadIn extends Thread {
 					firstMsg = true;
 				}
 
-				if (remoteMessage != null && !remoteMessage.isEmpty() && isMessage(remoteMessage)) {
+				if (remoteMessage != null && remoteMessage.equals("{EXIT}")) {
+					System.out.println("\nSomeone has left the chat. . .\n");
+					exited = true;
+					this.st.isConnected();
+				}
+
+				else if (remoteMessage != null && !remoteMessage.isEmpty() && isMessage(remoteMessage)) {
 
 					System.out.println("\nMessage received from " + this.clientSocket.getInetAddress().toString());
 					System.out.println("Sender's Port: " + serverPort);
@@ -63,36 +63,33 @@ public class ClientThreadIn extends Thread {
 
 				}
 
+			} catch (IOException e) {
+				System.out.print("");
 			}
-		} catch (IOException io) {
-			System.out.println("terminated?");
 		}
 
 		try {
 			this.clientSocket.close();
+			this.input.close();
+
 		} catch (IOException e) {
-			// TODO Auto-generated catch block
 			e.printStackTrace();
 		}
 	}
 
-	public boolean isMessage(String m) {
+	protected boolean isMessage(String m) {
 		return m.charAt(0) == '{';
 	}
 
-	public BufferedReader getReader() {
+	protected BufferedReader getReader() {
 		return input;
 	}
 
-	public int getPort() {
+	protected int getPort() {
 		return this.clientSocket.getPort();
 	}
 
-	public int getListenPort() {
-		return this.listeningPort;
-	}
-
-	public String getIp() {
+	protected String getIp() {
 		return this.clientSocket.getInetAddress().getHostAddress();
 	}
 }

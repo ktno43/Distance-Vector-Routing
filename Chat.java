@@ -8,15 +8,11 @@ import java.util.List;
 public class Chat {
 	static ServerThread st;
 
-	public Chat(int portListen) {
-		st = new ServerThread(portListen);
-		st.start();
-	}
-
 	public static synchronized void main(String[] args) throws IOException {
 		int portListen = Integer.parseInt(args[0]);
 
-		Chat chat = new Chat(portListen);
+		st = new ServerThread(portListen);
+		st.start();
 
 		boolean flag = true;
 		String userInput;
@@ -31,11 +27,11 @@ public class Chat {
 
 			switch (inputList.get(0)) {
 			case "help":
-				chat.help();
+				help();
 				break;
 
 			case "myip":
-				chat.myIp();
+				myIp();
 				break;
 
 			case "myport":
@@ -43,19 +39,34 @@ public class Chat {
 				break;
 
 			case "connect":
-				chat.connect(inputList.get(1), Integer.parseInt(inputList.get(2)));
+				connect(inputList.get(1), Integer.parseInt(inputList.get(2)));
 				break;
 
 			case "list":
-				chat.getList();
-				break;
-
-			case "send":
-				send(Integer.parseInt(inputList.get(1)), inputList.get(2));
+				getList();
 				break;
 
 			case "terminate":
-				st.terminate(Integer.parseInt(inputList.get(1)));
+				if (inputList.size() > 1 && isNumeric(inputList.get(1))) {
+					st.terminate(Integer.parseInt(inputList.get(1)));
+
+					System.out.println();
+				}
+
+				else
+					System.out.println("\nID is incorrect\n");
+
+				break;
+
+			case "send":
+				if (inputList.size() > 2 && isNumeric(inputList.get(1))) {
+					send(Integer.parseInt(inputList.get(1)), inputList.get(2));
+					System.out.println();
+				}
+
+				else
+					System.out.println("\nID is incorrect\n");
+
 				break;
 
 			case "exit":
@@ -69,11 +80,19 @@ public class Chat {
 				break;
 			}
 		}
-		System.out.print(st.isAlive());
 		System.exit(0);
 	}
 
-	private void help() {
+	private static boolean isNumeric(String str) {
+		try {
+			Integer.parseInt(str);
+			return true;
+		} catch (NumberFormatException e) {
+			return false;
+		}
+	}
+
+	private static void help() {
 		System.out.println("\nmyip :- \n\tDisplay the IP address of the current process\n");
 		System.out.println("myport :- \n\tDisplay the IP address of the current process\n");
 		System.out.println("connect <IP> <Listening Port>:-"
@@ -85,7 +104,7 @@ public class Chat {
 		System.out.println("exit :- \n\tClose all connections and terminate the current process\n");
 	}
 
-	private void myIp() {
+	private static void myIp() {
 		String systemipaddress = "";
 		try {
 			URL url_name = new URL("http://bot.whatismyipaddress.com");
@@ -97,22 +116,22 @@ public class Chat {
 		} catch (Exception e) {
 			systemipaddress = "Cannot Execute Properly";
 		}
+
 		System.out.println("\nPublic IP Address: " + systemipaddress + "\n");
 	}
 
-	private void connect(String clientIP, int clientListenPort) throws IOException {
+	private static void connect(String clientIP, int clientListenPort) throws IOException {
 		if (!st.isConnected(clientIP, clientListenPort)) {
 			st.addConn(clientIP, clientListenPort);
 		}
 	}
-
 
 	private static void send(int id, String m) {
 		StringBuilder sb = new StringBuilder(m);
 		st.sendUserMessage(id, sb.insert(0, "{").toString());
 	}
 
-	private void getList() {
+	private static void getList() {
 		st.printClientList();
 	}
 
