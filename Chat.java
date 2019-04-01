@@ -1,3 +1,20 @@
+/*-
+ ****************************************
+ * Kyle Nguyen
+ * Kodi Winterer
+ * 
+ * COMP 429
+ * Spring 2019
+ * Senhua Yu
+ * Tuesday 7:00 PM - 9:45 PM
+ * 
+ * Programming Assignment 1:
+ * Develop a simple chat application for 
+ * message exchange among remote peers.
+ * 
+ * Chat.java
+ * Version 1.0
+ ****************************************/
 import java.io.BufferedReader;
 import java.io.IOException;
 import java.io.InputStreamReader;
@@ -6,47 +23,49 @@ import java.util.Arrays;
 import java.util.List;
 
 public class Chat {
-	static ServerThread st;
+	static ServerThread st; // Server thread to start the chat
 
 	public static synchronized void main(String[] args) throws IOException {
-		int portListen = Integer.parseInt(args[0]);
+		int portListen = Integer.parseInt(args[0]); // Listening port read from command arguments
 
-		st = new ServerThread(portListen);
+		st = new ServerThread(portListen); // Start the server thread to accept connections
 		st.start();
 
-		boolean flag = true;
-		String userInput;
-		BufferedReader stdIn = new BufferedReader(new InputStreamReader(System.in));
+		boolean flag = true; // Flag for user input
+		String userInput; // Input string
+		BufferedReader stdIn = new BufferedReader(new InputStreamReader(System.in)); // Buffered reader to read from console
 
 		String welcomeMessage = "Comp 429 Project #1";
 		System.out.println(welcomeMessage);
 
-		while (flag) {
-			userInput = stdIn.readLine();
-			List<String> inputList = Arrays.asList(userInput.split(" ", 3));
+		while (flag) { // while not done
+			userInput = stdIn.readLine(); // Read in the input
 
-			switch (inputList.get(0)) {
-			case "help":
+			List<String> inputList = Arrays.asList(userInput.split(" ", 3)); // Split the read command by spaces
+			// <command> <id> <message>
+
+			switch (inputList.get(0)) { // Case for the entered command
+			case "help": // Display help descriptions
 				help();
 				break;
 
-			case "myip":
+			case "myip": // Display IP of current system
 				myIp();
 				break;
 
-			case "myport":
+			case "myport": // Display the current listening port
 				System.out.println("\nListening port: " + args[0] + "\n");
 				break;
 
-			case "connect":
+			case "connect": // The 2nd list element will be the client IP, and the 3rd list element will be their listening port
 				connect(inputList.get(1), Integer.parseInt(inputList.get(2)));
 				break;
 
-			case "list":
+			case "list": // Print the list of connections
 				getList();
 				break;
 
-			case "terminate":
+			case "terminate": // Get the 2nd list element and terminate that ID if it is within bounds
 				if (inputList.size() > 1 && isNumeric(inputList.get(1))) {
 					st.terminate(Integer.parseInt(inputList.get(1)));
 
@@ -58,9 +77,9 @@ public class Chat {
 
 				break;
 
-			case "send":
+			case "send": // Get the 3rd list element (message) and send it to the 2nd list element (sender ID)
 				if (inputList.size() > 2 && isNumeric(inputList.get(1))) {
-					send(Integer.parseInt(inputList.get(1)), inputList.get(2));
+					st.sendUserMessage(Integer.parseInt(inputList.get(1)), inputList.get(2));
 					System.out.println();
 				}
 
@@ -69,20 +88,28 @@ public class Chat {
 
 				break;
 
-			case "exit":
+			case "exit": // Exit the program
 				flag = false;
-				st.sendAllExitMsg();
+				st.sendAllExitMsg(); // Send exit message to everyone
 
 				break;
 
-			default:
+			default: // Not a valid command
 				System.out.println("\n" + inputList.get(0) + " is not a command\n");
 				break;
 			}
 		}
+
 		System.exit(0);
 	}
 
+	/******************************************
+	 * Check to see if input it is a number
+	 * 
+	 * @param str-
+	 *            the string passed in
+	 * @return is number or not
+	 ******************************************/
 	private static boolean isNumeric(String str) {
 		try {
 			Integer.parseInt(str);
@@ -92,6 +119,9 @@ public class Chat {
 		}
 	}
 
+	/******************************************
+	 * Display help menu
+	 ******************************************/
 	private static void help() {
 		System.out.println("\nmyip :- \n\tDisplay the IP address of the current process\n");
 		System.out.println("myport :- \n\tDisplay the IP address of the current process\n");
@@ -104,15 +134,20 @@ public class Chat {
 		System.out.println("exit :- \n\tClose all connections and terminate the current process\n");
 	}
 
+	/******************************************
+	 * Display the IP of the current system
+	 ******************************************/
 	private static void myIp() {
-		String systemipaddress = "";
-		try {
-			URL url_name = new URL("http://bot.whatismyipaddress.com");
+		String systemipaddress = ""; // string for the ip
 
-			BufferedReader sc = new BufferedReader(new InputStreamReader(url_name.openStream()));
+		try {
+			URL url_name = new URL("http://bot.whatismyipaddress.com"); // website to get the IP
+
+			BufferedReader sc = new BufferedReader(new InputStreamReader(url_name.openStream())); // Read from the website
 
 			// reads system IPAddress
-			systemipaddress = sc.readLine().trim();
+			systemipaddress = sc.readLine().trim(); // read into the string
+
 		} catch (Exception e) {
 			systemipaddress = "Cannot Execute Properly";
 		}
@@ -120,19 +155,26 @@ public class Chat {
 		System.out.println("\nPublic IP Address: " + systemipaddress + "\n");
 	}
 
-	private static void connect(String clientIP, int clientListenPort) throws IOException {
+	/******************************************
+	 * Connect to a client given their valid
+	 * IP & listening port
+	 * 
+	 * @param clientIP-
+	 *            the client's IP
+	 * @param clientListenPort-
+	 *            the client's listening port
+	 * @throws IOException
+	 ******************************************/
+	private static void connect(String clientIP, int clientListenPort) {
 		if (!st.isConnected(clientIP, clientListenPort)) {
 			st.addConn(clientIP, clientListenPort);
 		}
 	}
 
-	private static void send(int id, String m) {
-		StringBuilder sb = new StringBuilder(m);
-		st.sendUserMessage(id, sb.insert(0, "{").toString());
-	}
-
+	/******************************************
+	 * Print the connection list
+	 ******************************************/
 	private static void getList() {
 		st.printClientList();
 	}
-
 }
