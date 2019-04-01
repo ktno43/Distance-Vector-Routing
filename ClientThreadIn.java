@@ -1,3 +1,4 @@
+
 /*-
  ****************************************
  * Kyle Nguyen
@@ -49,7 +50,7 @@ public class ClientThreadIn extends Thread {
 					firstMsg = true;
 				}
 
-				else if (remoteMessage != null && remoteMessage.equals("{TERMINATE}")) { // Client was terminated
+				if (remoteMessage != null && remoteMessage.equals("{TERMINATE}")) { // Client was terminated
 					System.out.println("\nSomeone has terminated you from the chat. . .\n");
 					this.st.checkConnection(); // Check connections
 					flag = false;
