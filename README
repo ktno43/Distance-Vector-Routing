@@ -11,5 +11,5 @@ Contribution:
 As a whole the project was very much a group effort. 
 Generally speaking, everyone participated in everything.
 If the work were to be split then:
-  Kyle: Basic socket connection, Termination and exiting, Exception Handling, cleanup
+  Kyle Nguyen: Basic socket connection, Termination and exiting, Exception Handling, cleanup
   Kodi Winterer: Distrubution of tasks into seperate threads, some cleanup.
