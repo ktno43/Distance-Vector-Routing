@@ -52,13 +52,13 @@ public class ClientThreadIn extends Thread {
 
 				if (remoteMessage != null && remoteMessage.equals("{TERMINATE}")) { // Client was terminated
 					System.out.println("\nSomeone has terminated you from the chat. . .\n");
-					this.st.isConnected(); // Check connections
+					this.st.checkConnection(); // Check connections
 					flag = false;
 				}
 
 				else if (remoteMessage != null && remoteMessage.equals("{EXIT}")) { // Someone left the chat
 					System.out.println("\nSomeone has left the chat. . .\n");
-					this.st.isConnected(); // Check connections
+					this.st.checkConnection(); // Check connections
 				}
 
 				else if (remoteMessage != null && !remoteMessage.isEmpty()) { // Print the message if it isn't null or empty
@@ -70,7 +70,7 @@ public class ClientThreadIn extends Thread {
 				}
 
 			} catch (IOException e) {
-				System.out.print("");
+				System.out.print("Error when reading line");
 			}
 		}
 	}

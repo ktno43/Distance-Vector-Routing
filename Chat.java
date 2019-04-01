@@ -139,21 +139,21 @@ public class Chat {
 	 * Display the IP of the current system
 	 ******************************************/
 	private static void myIp() {
-		String systemipaddress = ""; // string for the ip
+		String systemIP = ""; // String for the IP
 
 		try {
-			URL url_name = new URL("http://bot.whatismyipaddress.com"); // website to get the IP
+			URL urlName = new URL("http://bot.whatismyipaddress.com"); // Website to get the IP
 
-			BufferedReader sc = new BufferedReader(new InputStreamReader(url_name.openStream())); // Read from the website
+			BufferedReader br = new BufferedReader(new InputStreamReader(urlName.openStream())); // Read from the website
 
-			// reads system IPAddress
-			systemipaddress = sc.readLine().trim(); // read into the string
+			// Reads system IP Address
+			systemIP = br.readLine().trim(); // Read into the string
 
 		} catch (Exception e) {
-			systemipaddress = "Cannot Execute Properly";
+			systemIP = "Cannot Execute Properly";
 		}
 
-		System.out.println("\nPublic IP Address: " + systemipaddress + "\n");
+		System.out.println("\nPublic IP Address: " + systemIP + "\n");
 	}
 
 	/******************************************

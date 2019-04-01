@@ -70,7 +70,6 @@ public class ServerThread extends Thread {
 				}
 
 				if (!breakout) { // If not breakout, keep listening for connections
-
 					s = new Socket(sock.getInetAddress().getHostAddress(), Integer.parseInt(remoteMessage)); // If it's a new IP, then create a new socket
 					ClientThreadOut cto = new ClientThreadOut(s); // Create a new client output for the given socket
 					clientVectorOut.add(cto); // Add the current client to the client's output vector
@@ -79,12 +78,12 @@ public class ServerThread extends Thread {
 					connectedClient.start(); // Start the client's input thread
 				}
 
-				isConnected(); // Check the connections within the vector and continue to listen for connections
+				checkConnection(); // Check the connections within the vector and continue to listen for connections
 			}
 
 		} catch (IOException ioe) {
-			System.out.println(ioe.getMessage());
-			ioe.printStackTrace(System.err);
+			System.out.println("\nThere is already a Server Socket running on that port!");
+			System.exit(0);
 		}
 	}
 
@@ -207,7 +206,7 @@ public class ServerThread extends Thread {
 	 * still connected
 	 * If not, remove them from the list
 	 ******************************************/
-	protected void isConnected() {
+	protected void checkConnection() {
 		for (int i = 0; i < clientVectorIn.size(); i++) { // Check all the client's input vector
 			try {
 				if (clientVectorIn.get(i).clientSocket.isClosed() || clientVectorOut.get(i).clientSocket.isClosed()
@@ -219,8 +218,13 @@ public class ServerThread extends Thread {
 					if (!clientVectorOut.isEmpty()) // If not empty remove it from the output vector
 						this.clientVectorOut.remove(i);
 				}
+
 			} catch (IOException e) {
-				System.out.print("");
+				if (!clientVectorIn.isEmpty()) // If not empty remove it from the input vector
+					this.clientVectorIn.remove(i);
+
+				if (!clientVectorOut.isEmpty()) // If not empty remove it from the output vector
+					this.clientVectorOut.remove(i);
 			}
 		}
 	}
