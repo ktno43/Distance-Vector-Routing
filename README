@@ -1,0 +1,15 @@
+Project 1 Chat Program
+
+Installation:
+javac Chat.java
+
+Run:
+java Chat <Port>
+Where <Port> is the desired port to run on.
+
+Contribution:
+As a whole the project was very much a group effort. 
+Generally speaking, everyone participated in everything.
+If the work were to be split then:
+  Kyle: Basic socket connection, Termination and exiting, Exception Handling, cleanup
+  Kodi Winterer: Distrubution of tasks into seperate threads, some cleanup.
