@@ -1,3 +1,4 @@
+
 /*-
  ****************************************
  * Kyle Nguyen
@@ -26,11 +27,13 @@ public class ClientThreadIn extends Thread {
 	protected BufferedReader input; // Buffered reader for the input
 	protected int serverPort; // The listening port
 	protected ServerThread st; // The associated server thread
+	protected boolean firstMsg;
 
 	ClientThreadIn(Socket sock, ServerThread serverThread) throws IOException { // Create a socket for the input and associate it to the serverthread
 		this.clientSocket = sock;
 		input = new BufferedReader(new InputStreamReader(clientSocket.getInputStream())); // Create new buffered reader
 		this.st = serverThread;
+		this.firstMsg = false;
 	}
 
 	@Override
@@ -39,6 +42,13 @@ public class ClientThreadIn extends Thread {
 		while (flag) {
 			try {
 				String remoteMessage = input.readLine(); // Read in remote message from the socket
+
+				if (remoteMessage != null && !firstMsg) {
+					StringBuilder sb = new StringBuilder(remoteMessage);
+					if (remoteMessage.charAt(0) != '{')
+						remoteMessage = sb.insert(0, '{').toString();
+					firstMsg = true;
+				}
 
 				if (remoteMessage != null && remoteMessage.equals("{TERMINATE}")) { // Client was terminated
 					System.out.println("\nSomeone has terminated you from the chat. . .\n");
@@ -54,7 +64,7 @@ public class ClientThreadIn extends Thread {
 				else if (remoteMessage != null && !remoteMessage.isEmpty()) { // Print the message if it isn't null or empty
 					System.out.println("\nMessage received from " + this.clientSocket.getInetAddress().toString());
 					System.out.println("Sender's Port: " + serverPort);
-					System.out.println("Message: " + remoteMessage);// Print to the local console
+					System.out.println("Message: " + remoteMessage.substring(1));// Print to the local console
 					System.out.println();
 
 				}

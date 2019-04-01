@@ -79,7 +79,8 @@ public class Chat {
 
 			case "send": // Get the 3rd list element (message) and send it to the 2nd list element (sender ID)
 				if (inputList.size() > 2 && isNumeric(inputList.get(1))) {
-					st.sendUserMessage(Integer.parseInt(inputList.get(1)), inputList.get(2));
+					StringBuilder sb = new StringBuilder(inputList.get(2));
+					st.sendUserMessage(Integer.parseInt(inputList.get(1)), sb.insert(0, "{").toString());
 					System.out.println();
 				}
 

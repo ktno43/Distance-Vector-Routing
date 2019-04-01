@@ -31,7 +31,7 @@ public class ClientThreadOut {
 	ClientThreadOut(String ip, int listenPort) {
 		try { // Try to create a socket for the given IP and listening port
 			clientSocket = new Socket(ip, listenPort);
-
+			clientSocket.setReuseAddress(true);
 			this.listeningPort = listenPort;
 			this.ip = ip;
 
