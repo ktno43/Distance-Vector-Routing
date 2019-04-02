@@ -13,7 +13,7 @@
  * message exchange among remote peers.
  * 
  * ServerThread.java
- * Version 4.0
+ * Version 5.0
  ****************************************/
 import java.io.BufferedReader;
 import java.io.IOException;
@@ -77,7 +77,10 @@ public class ServerThread extends Thread {
 					connectedClient.start(); // Start the client's input thread
 				}
 
-				checkConnection(); // Check the connections within the vector and continue to listen for connections
+				if (connectedClient.justConnected)
+					checkConnection(); // Check the connections within the vector and continue to listen for connections
+				else
+					connectedClient.justConnected = false;
 			}
 
 		} catch (IOException ioe) {
@@ -128,9 +131,9 @@ public class ServerThread extends Thread {
 	 ******************************************/
 	protected void printClientList() {
 		System.out.printf("%nID:\tIP Address\t\tPort No.%n");
-		for (int i = 0; i < this.clientVectorOut.size(); i++) { // Print all the output connections in the vector
+		for (int i = 0; i < this.clientVectorIn.size(); i++) { // Print all the output connections in the vector
 
-			System.out.printf("%d:\t%s\t\t%d%n", i + 1, this.clientVectorOut.get(i).getIp(),
+			System.out.printf("%d:\t%s\t\t%d%n", i + 1, this.clientVectorIn.get(i).getIp(),
 					this.clientVectorOut.get(i).getPort()); // Display their IP and their listening port
 		}
 

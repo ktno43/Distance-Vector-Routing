@@ -13,7 +13,7 @@
  * message exchange among remote peers.
  * 
  * ClientThreadIn.java
- * Version 4.0
+ * Version 5.0
  ****************************************/
 import java.io.BufferedReader;
 import java.io.IOException;
@@ -26,12 +26,14 @@ public class ClientThreadIn extends Thread {
 	protected int serverPort; // The listening port
 	protected ServerThread st; // The associated server thread
 	protected boolean firstMsg;
+	protected boolean justConnected;
 
 	ClientThreadIn(Socket sock, ServerThread serverThread) throws IOException { // Create a socket for the input and associate it to the serverthread
 		this.clientSocket = sock;
 		input = new BufferedReader(new InputStreamReader(clientSocket.getInputStream())); // Create new buffered reader
 		this.st = serverThread;
 		this.firstMsg = false;
+		this.justConnected = true;
 	}
 
 	@Override
@@ -72,6 +74,13 @@ public class ClientThreadIn extends Thread {
 				// Ignore error message, termination/exit already handled exceptions
 			}
 		}
+	}
+
+	/******************************************
+	 * @return- The port the client is listening on
+	 ******************************************/
+	public int getPort() {
+		return this.clientSocket.getPort();
 	}
 
 	/******************************************

@@ -13,7 +13,7 @@
  * message exchange among remote peers.
  * 
  * Chat.java
- * Version 4.0
+ * Version 5.0
  ****************************************/
 import java.io.BufferedReader;
 import java.io.IOException;
