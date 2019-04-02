@@ -75,14 +75,7 @@ public class ClientThreadIn extends Thread {
 			}
 		}
 	}
-
-	/******************************************
-	 * @return- The port the client is listening on
-	 ******************************************/
-	public int getPort() {
-		return this.clientSocket.getPort();
-	}
-
+	
 	/******************************************
 	 * Return the IP of the socket
 	 * 

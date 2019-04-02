@@ -131,9 +131,9 @@ public class ServerThread extends Thread {
 	 ******************************************/
 	protected void printClientList() {
 		System.out.printf("%nID:\tIP Address\t\tPort No.%n");
-		for (int i = 0; i < this.clientVectorIn.size(); i++) { // Print all the output connections in the vector
+		for (int i = 0; i < this.clientVectorOut.size(); i++) { // Print all the output connections in the vector
 
-			System.out.printf("%d:\t%s\t\t%d%n", i + 1, this.clientVectorIn.get(i).getIp(),
+			System.out.printf("%d:\t%s\t\t%d%n", i + 1, this.clientVectorOut.get(i).getIp(),
 					this.clientVectorOut.get(i).getPort()); // Display their IP and their listening port
 		}
 
