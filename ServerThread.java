@@ -14,7 +14,7 @@
  * message exchange among remote peers.
  * 
  * ServerThread.java
- * Version 6.0
+ * Version 7.0
  ****************************************/
 import java.io.BufferedReader;
 import java.io.IOException;
@@ -211,18 +211,8 @@ public class ServerThread extends Thread {
 	 ******************************************/
 	protected void checkConnection() {
 		for (int i = 0; i < clientVectorIn.size(); i++) { // Check all the client's input vector
-			try {
-				if (clientVectorIn.get(i).clientSocket.isClosed() || clientVectorOut.get(i).clientSocket.isClosed()
-						|| clientVectorIn.get(i).clientSocket.getInputStream().read() == -1) { // If any of them are closed or if the read input is -1
+			if (clientVectorIn.get(i).clientSocket.isClosed() || clientVectorOut.get(i).clientSocket.isClosed()) { // If any of them are closed or if the read input is -1
 
-					if (!clientVectorIn.isEmpty()) // If not empty remove it from the input vector
-						this.clientVectorIn.remove(i);
-
-					if (!clientVectorOut.isEmpty()) // If not empty remove it from the output vector
-						this.clientVectorOut.remove(i);
-				}
-
-			} catch (IOException e) {
 				if (!clientVectorIn.isEmpty()) // If not empty remove it from the input vector
 					this.clientVectorIn.remove(i);
 

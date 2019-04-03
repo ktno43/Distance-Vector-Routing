@@ -13,7 +13,7 @@
  * message exchange among remote peers.
  * 
  * ClientThreadIn.java
- * Version 6.0
+ * Version 7.0
  ****************************************/
 import java.io.BufferedReader;
 import java.io.IOException;
@@ -53,13 +53,24 @@ public class ClientThreadIn extends Thread {
 
 				if (remoteMessage != null && remoteMessage.equals("{TERMINATE}")) { // Client was terminated
 					System.out.println("\nSomeone has terminated you from their chat. . .\n");
-					this.st.checkConnection(); // Check connections
+					int index = this.st.clientVectorIn.indexOf(this);
+					if (!this.st.clientVectorIn.isEmpty()) // As long as the input vector is not empty
+						this.st.clientVectorIn.remove(index); // Remove the client from the input vector
+
+					if (!this.st.clientVectorOut.isEmpty()) // As long as the output vector is not empty
+						this.st.clientVectorOut.remove(index); // Remove the client from the output vector
+
 					flag = false;
 				}
 
 				else if (remoteMessage != null && remoteMessage.equals("{EXIT}")) { // Someone left the chat
 					System.out.println("\nSomeone has left the chat room. . .\n");
-					this.st.checkConnection(); // Check connections
+					int index = this.st.clientVectorIn.indexOf(this);
+					if (!this.st.clientVectorIn.isEmpty()) // As long as the input vector is not empty
+						this.st.clientVectorIn.remove(index); // Remove the client from the input vector
+
+					if (!this.st.clientVectorOut.isEmpty()) // As long as the output vector is not empty
+						this.st.clientVectorOut.remove(index); // Remove the client from the output vector
 				}
 
 				else if (remoteMessage != null && !remoteMessage.isEmpty()) { // Print the message if it isn't null or empty
