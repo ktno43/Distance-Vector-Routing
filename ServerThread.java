@@ -13,7 +13,7 @@
  * message exchange among remote peers.
  * 
  * ServerThread.java
- * Version 5.0
+ * Version 6.0
  ****************************************/
 import java.io.BufferedReader;
 import java.io.IOException;
@@ -77,7 +77,7 @@ public class ServerThread extends Thread {
 					connectedClient.start(); // Start the client's input thread
 				}
 
-				if (connectedClient.justConnected)
+				if (!connectedClient.justConnected)
 					checkConnection(); // Check the connections within the vector and continue to listen for connections
 				else
 					connectedClient.justConnected = false;

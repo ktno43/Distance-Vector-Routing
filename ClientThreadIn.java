@@ -1,3 +1,4 @@
+
 /*-
  ****************************************
  * Kyle Nguyen
@@ -13,7 +14,7 @@
  * message exchange among remote peers.
  * 
  * ClientThreadIn.java
- * Version 5.0
+ * Version 6.0
  ****************************************/
 import java.io.BufferedReader;
 import java.io.IOException;
@@ -75,7 +76,7 @@ public class ClientThreadIn extends Thread {
 			}
 		}
 	}
-	
+
 	/******************************************
 	 * Return the IP of the socket
 	 * 
