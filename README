@@ -13,3 +13,5 @@ Generally speaking, everyone participated in everything.
 If the work were to be split then:
   Kyle Nguyen: Basic socket connection, Termination and exiting, Exception Handling, cleanup
   Kodi Winterer: Distrubution of tasks into seperate threads, some cleanup.
+  
+  https://github.com/ktno43/Chat-Application
