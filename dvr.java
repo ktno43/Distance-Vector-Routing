@@ -96,7 +96,7 @@ public class dvr {
 
 				else {
 					if (isNumeric(inputList.get(1))) {
-
+						disable(Integer.parseInt(inputList.get(1)));
 					}
 
 					else
@@ -119,7 +119,7 @@ public class dvr {
 		System.exit(0);
 	}
 
-	private static void readTopFile(String fileName) throws Throwable {
+	private static void readTopFile (String fileName) throws Throwable {
 		URL path = dvr.class.getResource(fileName);
 		String filePath = path.getFile();
 		List<String> inputList = new ArrayList<>();
@@ -143,19 +143,23 @@ public class dvr {
 		}
 	}
 
-	private static void displayRt() {
+	private static void displayRt () {
 		server.displayRt();
 	}
 
-	private static void step() {
+	private static void step () {
 		server.step();
 	}
 
-	private static void updateCost(int id1, int id2, String cost) {
-		server.updateCost(id1, id2, cost);
+	private static void disable (int id) {
+		server.disable(id);
 	}
 
-	private static void createNodes(List<String> inputList) throws Throwable {
+	private static void updateCost (int id1, int id2, String cost) {
+		server.updateCost2(id1, id2, cost);
+	}
+
+	private static void createNodes (List<String> inputList) throws Throwable {
 		int numServers = Integer.parseInt(inputList.get(0));
 		String myIp = getMyLanIP();
 		String myPubIp = myIp();
@@ -178,7 +182,7 @@ public class dvr {
 		}
 	}
 
-	private static String myIp() {
+	private static String myIp () {
 		String systemIP = ""; // String for the IP
 
 		try {
@@ -196,7 +200,7 @@ public class dvr {
 		return systemIP;
 	}
 
-	private static boolean isNumeric(String str) {
+	private static boolean isNumeric (String str) {
 		try {
 			Integer.parseInt(str);
 			return true;
@@ -206,7 +210,7 @@ public class dvr {
 		}
 	}
 
-	private static String getMyLanIP() {
+	private static String getMyLanIP () {
 		try {
 			Enumeration<NetworkInterface> interfaces = NetworkInterface.getNetworkInterfaces();
 			while (interfaces.hasMoreElements()) {

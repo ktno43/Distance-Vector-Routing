@@ -46,7 +46,7 @@ public class ServerThread extends Thread {
 	private String Ip;
 	private int numPackets;
 	private Long[] timeoutArr;
-	public static final Long TIMEOUT = (long) 200000;
+	public static final Long TIMEOUT = (long) 50000;
 	private boolean crash;
 	private boolean[] firstMsg;
 	private DatagramSocket dgSocket;
@@ -137,9 +137,11 @@ public class ServerThread extends Thread {
 				}
 
 				for (Node n : neighborsSet) {
-					DatagramPacket msgPacket = new DatagramPacket(msgByte, msgByte.length,
-							InetAddress.getByName(n.getIP()), n.getPort());
-					dgSocket.send(msgPacket);
+					if (n.getReceiveMsgs()) {
+						DatagramPacket msgPacket = new DatagramPacket(msgByte, msgByte.length,
+								InetAddress.getByName(n.getIP()), n.getPort());
+						dgSocket.send(msgPacket);
+					}
 				}
 			} catch (IOException e) {
 				// do nothin
@@ -147,87 +149,108 @@ public class ServerThread extends Thread {
 		}
 	}
 
+	protected void disable (int id) {
+
+		Node toDisableNode = getNodeByID(id);
+
+		if (toDisableNode != null && neighborsSet.contains(toDisableNode)) {
+			toDisableNode.setReceiveMsgs(false);
+			updateCost(serverId, id, "inf");
+
+			for (Node n : nodesList) {
+				if (hopMap.get(n).getID() == id)
+					updateCost(serverId, n.getID(), "inf");
+			}
+		}
+
+
+	}
+
 	protected void read (byte[] msg, int bytesRead) {
 		try {
-			byte[] messageByte = msg;
 
-			System.out.println("Bytes read: " + bytesRead);
-			this.numPackets += bytesRead;
+			byte[] messageByte = msg;
 
 			int high = messageByte[1] >= 0 ? messageByte[1] : 256 + messageByte[1];
 			int low = messageByte[0] >= 0 ? messageByte[0] : 256 + messageByte[0];
 			int updateFields = low | (high << 8);
-			System.out.println("Update fields: " + updateFields);
+			// System.out.println("Update fields: " + updateFields);
 
 			high = messageByte[3] >= 0 ? messageByte[3] : 256 + messageByte[3];
 			low = messageByte[2] >= 0 ? messageByte[2] : 256 + messageByte[2];
 			int senderPort = low | (high << 8);
-			System.out.println("Sender port: " + senderPort);
+			// System.out.println("Sender port: " + senderPort);
 
 			String senderIp = InetAddress.getByAddress(Arrays.copyOfRange(messageByte, 4, 8)).getHostAddress();
-			System.out.println("Sender IP:" + senderIp);
+			// System.out.println("Sender IP:" + senderIp);
 
-			for (int j = 8, k = 1; j < (10 * updateFields); j += 10, k++) {
-				String ipN = InetAddress.getByAddress(Arrays.copyOfRange(messageByte, j, j + 4)).getHostAddress();
-				System.out.println("\n" + k + "th IP: " + ipN);
+			if (getNodeByIpAndPort(senderIp, senderPort).getReceiveMsgs()) {
+				System.out.print("RECEIVED A MESSAGE FROM SERVER " + getNodeByIpAndPort(senderIp, senderPort).getID());
+				// System.out.println("Bytes read: " + bytesRead);
+				this.numPackets += bytesRead;
 
-				high = messageByte[j + 5] >= 0 ? messageByte[j + 5] : 256 + messageByte[j + 5];
-				low = messageByte[j + 4] >= 0 ? messageByte[j + 4] : 256 + messageByte[j + 4];
-				int nPort = low | (high << 8);
-				System.out.println(k + "th Port: " + nPort);
+				for (int j = 8, k = 1; j < (10 * updateFields); j += 10, k++) {
+					String ipN = InetAddress.getByAddress(Arrays.copyOfRange(messageByte, j, j + 4)).getHostAddress();
+					// System.out.println("\n" + k + "th IP: " + ipN);
 
-				high = messageByte[j + 7] >= 0 ? messageByte[j + 7] : 256 + messageByte[j + 7];
-				low = messageByte[j + 6] >= 0 ? messageByte[j + 6] : 256 + messageByte[j + 6];
-				int nID = low | (high << 8);
-				System.out.println(k + "th ID: " + nID);
+					high = messageByte[j + 5] >= 0 ? messageByte[j + 5] : 256 + messageByte[j + 5];
+					low = messageByte[j + 4] >= 0 ? messageByte[j + 4] : 256 + messageByte[j + 4];
+					int nPort = low | (high << 8);
+					// System.out.println(k + "th Port: " + nPort);
 
-				high = messageByte[j + 9] >= 0 ? messageByte[j + 9] : 256 + messageByte[j + 9];
-				low = messageByte[j + 8] >= 0 ? messageByte[j + 8] : 256 + messageByte[j + 8];
+					high = messageByte[j + 7] >= 0 ? messageByte[j + 7] : 256 + messageByte[j + 7];
+					low = messageByte[j + 6] >= 0 ? messageByte[j + 6] : 256 + messageByte[j + 6];
+					int nID = low | (high << 8);
+					// System.out.println(k + "th ID: " + nID);
 
-				int nCost = low | (high << 8);
-				if (nCost == 65535) // integer max
-					System.out.println(k + "th cost: inf");
-				else
-					System.out.println(k + "th cost: " + nCost);
+					high = messageByte[j + 9] >= 0 ? messageByte[j + 9] : 256 + messageByte[j + 9];
+					low = messageByte[j + 8] >= 0 ? messageByte[j + 8] : 256 + messageByte[j + 8];
+
+					int nCost = low | (high << 8);
+					// if (nCost == 65535) // integer max
+					// System.out.println(k + "th cost: inf");
+					// else
+					// System.out.println(k + "th cost: " + nCost);
 
 
-				for (Node n : neighborsSet) {
-					if (senderIp.equals(n.getIP()) && (senderPort == n.getPort())
-							&& ipN.equals(serverNode.getIP()) && nPort == serverNode.getPort()
-							&& (nCost < rtMap.get(n))) {
-						rtMap.put(n, nCost);
+					for (Node n : neighborsSet) {
+						if (senderIp.equals(n.getIP()) && (senderPort == n.getPort())
+								&& ipN.equals(serverNode.getIP()) && nPort == serverNode.getPort()
+								&& (nCost < rtMap.get(n))) {
+							rtMap.put(n, nCost);
+						}
+					}
+
+					for (int i = 0; i < rtMap.size(); i++) {
+						if (nCost != 65535 && nCost != 0 && nCost < rtMap.get(getNodeByIpAndPort(ipN, nPort))) {
+							updateCost(this.serverId, getNodeByIpAndPort(ipN, nPort).getID(), Integer.toString(nCost));
+							hopMap.put(getNodeByIpAndPort(ipN, nPort), getNodeByIpAndPort(senderIp, senderPort));
+						}
+					}
+
+					for (Node n : nodesList) {
+						if (n.getIP().equals(senderIp) && n.getPort() == senderPort) {
+							timeoutArr[n.getID() - 1] = System.currentTimeMillis();
+						}
+					}
+
+					int senderID = getNodeByIpAndPort(senderIp, senderPort).getID();
+
+					if (!firstMsg[senderID - 1]) {
+						firstMsg[senderID - 1] = true;
+						Executors.newSingleThreadScheduledExecutor().scheduleAtFixedRate( () -> {
+							checkTimeStamps(senderID - 1);
+
+						}, TIMEOUT, TIMEOUT, TimeUnit.MILLISECONDS);
 					}
 				}
 
-				for (int i = 0; i < rtMap.size(); i++) {
-					if (nCost != 65535 && nCost != 0 && nCost < rtMap.get(getNodeByIpAndPort(ipN, nPort))) {
-						updateCost(this.serverId, getNodeByIpAndPort(ipN, nPort).getID(), Integer.toString(nCost));
-						hopMap.put(getNodeByIpAndPort(ipN, nPort), getNodeByIpAndPort(senderIp, senderPort));
-					}
-				}
-
-				for (Node n : nodesList) {
-					if (n.getIP().equals(senderIp) && n.getPort() == senderPort) {
-						timeoutArr[n.getID() - 1] = System.currentTimeMillis();
-					}
-				}
-
-				int senderID = getNodeByIpAndPort(senderIp, senderPort).getID();
-
-				if (!firstMsg[senderID - 1]) {
-					firstMsg[senderID - 1] = true;
-					Executors.newSingleThreadScheduledExecutor().scheduleAtFixedRate( () -> {
-						checkTimeStamps(senderID - 1);
-
-					}, TIMEOUT, TIMEOUT, TimeUnit.MILLISECONDS);
-				}
+				System.out.println("\n");
 			}
-
-			System.out.println("\n");
-
 		} catch (IOException e) {
 			// do nothing?
 		}
+
 	}
 
 	protected Node getNodeByIpAndPort (String ip, int port) {
@@ -309,6 +332,34 @@ public class ServerThread extends Thread {
 		}
 
 		return null;
+	}
+
+	protected void updateCost2 (int id1, int id2, String newCost) {
+		Node destNode = null;
+
+		if ((id1 != id2) && (id1 == this.serverId || id2 == this.serverId)) {
+			if ((id1 == this.serverId) && (id2 > 0) && (id2 <= this.nodesList.size()))
+				destNode = getNodeByID(id2);
+
+			else if ((id2 == this.serverId) && (id1 > 0) && (id1 <= this.nodesList.size()))
+				destNode = getNodeByID(id1);
+
+			if (neighborsSet.contains(destNode)) {
+				if (newCost.equals("inf"))
+					rtMap.put(destNode, Integer.MAX_VALUE);
+
+				else
+					rtMap.put(destNode, Integer.parseInt(newCost));
+
+			}
+
+			else
+				System.out.print("Not a neighbor");
+		}
+		else
+			System.out.print("Invalid ID");
+
+
 	}
 
 	protected void updateCost (int id1, int id2, String newCost) {
