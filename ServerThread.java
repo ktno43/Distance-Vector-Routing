@@ -1,4 +1,3 @@
-
 /*-
  ****************************************
  * Kyle Nguyen
@@ -9,30 +8,25 @@
  * Senhua Yu
  * Tuesday 7:00 PM - 9:45 PM
  * 
- * Programming Assignment 1:
- * Develop a simple chat application for 
- * message exchange among remote peers.
+ * Programming Assignment 2:
+ * Implement a simplified version of the 
+ * Distance Vector Routing Protocol.
  * 
  * ServerThread.java
  * Version 7.0
  ****************************************/
-import java.io.BufferedReader;
 import java.io.IOException;
-import java.io.InputStream;
 import java.net.DatagramPacket;
 import java.net.DatagramSocket;
 import java.net.InetAddress;
-import java.net.ServerSocket;
-import java.net.Socket;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.HashMap;
 import java.util.HashSet;
-import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
-import java.util.Vector;
+
 import java.util.concurrent.Executors;
 import java.util.concurrent.TimeUnit;
 
@@ -194,43 +188,32 @@ public class ServerThread extends Thread {
 			int high = messageByte[1] >= 0 ? messageByte[1] : 256 + messageByte[1];
 			int low = messageByte[0] >= 0 ? messageByte[0] : 256 + messageByte[0];
 			int updateFields = low | (high << 8);
-			// System.out.println("Update fields: " + updateFields);
 
 			high = messageByte[3] >= 0 ? messageByte[3] : 256 + messageByte[3];
 			low = messageByte[2] >= 0 ? messageByte[2] : 256 + messageByte[2];
 			int senderPort = low | (high << 8);
-			// System.out.println("Sender port: " + senderPort);
 
 			String senderIp = InetAddress.getByAddress(Arrays.copyOfRange(messageByte, 4, 8)).getHostAddress();
-			// System.out.println("Sender IP:" + senderIp);
 
 			if (getNodeByIpAndPort(senderIp, senderPort).getReceiveMsgs()) {
 				System.out.print("RECEIVED A MESSAGE FROM SERVER " + getNodeByIpAndPort(senderIp, senderPort).getID());
-				// System.out.println("Bytes read: " + bytesRead);
 				this.numPackets += bytesRead;
 
-				for (int j = 8, k = 1; j < (10 * updateFields); j += 10, k++) {
+				for (int j = 8; j < (10 * updateFields); j += 10) {
 					String ipN = InetAddress.getByAddress(Arrays.copyOfRange(messageByte, j, j + 4)).getHostAddress();
-					// System.out.println("\n" + k + "th IP: " + ipN);
 
 					high = messageByte[j + 5] >= 0 ? messageByte[j + 5] : 256 + messageByte[j + 5];
 					low = messageByte[j + 4] >= 0 ? messageByte[j + 4] : 256 + messageByte[j + 4];
 					int nPort = low | (high << 8);
-					// System.out.println(k + "th Port: " + nPort);
 
 					high = messageByte[j + 7] >= 0 ? messageByte[j + 7] : 256 + messageByte[j + 7];
 					low = messageByte[j + 6] >= 0 ? messageByte[j + 6] : 256 + messageByte[j + 6];
 					int nID = low | (high << 8);
-					// System.out.println(k + "th ID: " + nID);
 
 					high = messageByte[j + 9] >= 0 ? messageByte[j + 9] : 256 + messageByte[j + 9];
 					low = messageByte[j + 8] >= 0 ? messageByte[j + 8] : 256 + messageByte[j + 8];
 
 					int nCost = low | (high << 8);
-					// if (nCost == 65535) // integer max
-					// System.out.println(k + "th cost: inf");
-					// else
-					// System.out.println(k + "th cost: " + nCost);
 
 					for (Node n : neighborsSet) {
 						if (senderIp.equals(n.getIP()) && (senderPort == n.getPort()) && ipN.equals(serverNode.getIP())
@@ -240,9 +223,17 @@ public class ServerThread extends Thread {
 					}
 
 					for (int i = 0; i < rtMap.size(); i++) {
-						if (nCost != 65535 && nCost != 0 && nCost < rtMap.get(getNodeByIpAndPort(ipN, nPort))) {
-							updateCost(this.serverId, getNodeByIpAndPort(ipN, nPort).getID(), Integer.toString(nCost));
-							hopMap.put(getNodeByIpAndPort(ipN, nPort), getNodeByIpAndPort(senderIp, senderPort));
+						if (!neighborsSet.contains(getNodeByIpAndPort(ipN, nPort))) {
+							if (nCost == 65535) {
+								updateCost(this.serverId, getNodeByIpAndPort(ipN, nPort).getID(), "inf");
+								hopMap.put(getNodeByIpAndPort(ipN, nPort), null);
+							}
+
+							else if (nCost < rtMap.get(getNodeByIpAndPort(ipN, nPort))) {
+								updateCost(this.serverId, getNodeByIpAndPort(ipN, nPort).getID(),
+										Integer.toString(nCost));
+								hopMap.put(getNodeByIpAndPort(ipN, nPort), getNodeByIpAndPort(senderIp, senderPort));
+							}
 						}
 					}
 
@@ -409,7 +400,7 @@ public class ServerThread extends Thread {
 			int cost = rtMap.get(node);
 			String costStr = "" + cost;
 
-			if (cost == Integer.MAX_VALUE)
+			if (cost == Integer.MAX_VALUE || cost == 65535)
 				costStr = "inf";
 
 			if (hopMap.get(node) != null)

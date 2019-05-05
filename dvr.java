@@ -1,3 +1,20 @@
+/*-
+ ****************************************
+ * Kyle Nguyen
+ * Kodi Winterer
+ * 
+ * COMP 429
+ * Spring 2019
+ * Senhua Yu
+ * Tuesday 7:00 PM - 9:45 PM
+ * 
+ * Programming Assignment 2:
+ * Implement a simplified version of the 
+ * Distance Vector Routing Protocol.
+ * 
+ * dvr.java
+ * Version 7.0
+ ****************************************/
 import java.io.BufferedReader;
 import java.io.IOException;
 import java.io.InputStreamReader;
@@ -148,6 +165,7 @@ public class dvr {
 		try {
 			server.displayRt();
 			System.out.println("display SUCCESS\n");
+
 		} catch (NullPointerException e) {
 			System.out.println(
 					"display ERROR: Failure to display server table. Table is null. Check config file for mistakes.\n");
