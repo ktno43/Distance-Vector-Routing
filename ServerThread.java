@@ -28,6 +28,7 @@ import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.HashMap;
 import java.util.HashSet;
+import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
@@ -51,7 +52,7 @@ public class ServerThread extends Thread {
 	private boolean[] firstMsg;
 	private DatagramSocket dgSocket;
 
-	public ServerThread (int listenPort, int id, String ip) {
+	public ServerThread(int listenPort, int id, String ip) {
 		this.listeningPort = listenPort; // Set the listening port
 		this.serverId = id;
 		this.nodesList = new ArrayList<>();
@@ -65,7 +66,7 @@ public class ServerThread extends Thread {
 	}
 
 	@Override
-	public void run () {
+	public void run() {
 		try { // Try to make a server socket for the current port
 				 // start the server...
 			dgSocket = new DatagramSocket(this.listeningPort);
@@ -88,15 +89,24 @@ public class ServerThread extends Thread {
 		}
 	}
 
-	protected void checkTimeStamps (int id) {
+	protected void checkTimeStamps(int id) {
 		long now = System.currentTimeMillis();
 		if (now - timeoutArr[id] > TIMEOUT) {
 			updateCost(this.serverId, id + 1, "inf");
 			this.hopMap.put(getNodeByID(id + 1), null);
+
+			for (Map.Entry<Node, Node> entry : hopMap.entrySet()) {
+				Node keyNode = entry.getKey();
+				Node valueNode = entry.getValue();
+				if (valueNode != null && valueNode.getID().equals(getNodeByID(id + 1).getID())) {
+					updateCost(keyNode.getID(), serverId, "inf");
+					hopMap.put(keyNode, null);
+				}
+			}
 		}
 	}
 
-	protected void step () {
+	protected void step() {
 		if (!crash) {
 			try {
 				int updateFields = nodesList.size();
@@ -149,7 +159,7 @@ public class ServerThread extends Thread {
 		}
 	}
 
-	protected void disable (int id) {
+	protected void disable(int id) {
 
 		Node toDisableNode = getNodeByID(id);
 
@@ -163,10 +173,9 @@ public class ServerThread extends Thread {
 			}
 		}
 
-
 	}
 
-	protected void read (byte[] msg, int bytesRead) {
+	protected void read(byte[] msg, int bytesRead) {
 		try {
 
 			byte[] messageByte = msg;
@@ -212,11 +221,9 @@ public class ServerThread extends Thread {
 					// else
 					// System.out.println(k + "th cost: " + nCost);
 
-
 					for (Node n : neighborsSet) {
-						if (senderIp.equals(n.getIP()) && (senderPort == n.getPort())
-								&& ipN.equals(serverNode.getIP()) && nPort == serverNode.getPort()
-								&& (nCost < rtMap.get(n))) {
+						if (senderIp.equals(n.getIP()) && (senderPort == n.getPort()) && ipN.equals(serverNode.getIP())
+								&& nPort == serverNode.getPort() && (nCost < rtMap.get(n))) {
 							rtMap.put(n, nCost);
 						}
 					}
@@ -238,7 +245,7 @@ public class ServerThread extends Thread {
 
 					if (!firstMsg[senderID - 1]) {
 						firstMsg[senderID - 1] = true;
-						Executors.newSingleThreadScheduledExecutor().scheduleAtFixedRate( () -> {
+						Executors.newSingleThreadScheduledExecutor().scheduleAtFixedRate(() -> {
 							checkTimeStamps(senderID - 1);
 
 						}, TIMEOUT, TIMEOUT, TimeUnit.MILLISECONDS);
@@ -253,7 +260,7 @@ public class ServerThread extends Thread {
 
 	}
 
-	protected Node getNodeByIpAndPort (String ip, int port) {
+	protected Node getNodeByIpAndPort(String ip, int port) {
 		for (Node n : nodesList) {
 			if (n.getIP().equals(ip) && n.getPort() == port)
 				return n;
@@ -262,7 +269,7 @@ public class ServerThread extends Thread {
 		return null;
 	}
 
-	protected void createNodes (List<String> inputList) {
+	protected void createNodes(List<String> inputList) {
 		int numServers = Integer.parseInt(inputList.get(0));
 
 		for (int i = 0; i < numServers; i++) {
@@ -287,7 +294,7 @@ public class ServerThread extends Thread {
 		}
 	}
 
-	protected void createNeighbors (List<String> inputList) {
+	protected void createNeighbors(List<String> inputList) {
 		int numServers = Integer.parseInt(inputList.get(0));
 		int numNeighbors = Integer.parseInt(inputList.get(1));
 		int neighborsOffset = 2 + numServers;
@@ -313,19 +320,19 @@ public class ServerThread extends Thread {
 		}
 	}
 
-	protected void setNumPackets (int reset) {
+	protected void setNumPackets(int reset) {
 		this.numPackets = reset;
 	}
 
-	protected int getNumPackets () {
+	protected int getNumPackets() {
 		return this.numPackets;
 	}
 
-	protected void setCrash (boolean crash) {
+	protected void setCrash(boolean crash) {
 		this.crash = crash;
 	}
 
-	private Node getNodeByID (int ID) {
+	private Node getNodeByID(int ID) {
 		for (Node node : nodesList) {
 			if (node.getID() == ID)
 				return node;
@@ -334,7 +341,7 @@ public class ServerThread extends Thread {
 		return null;
 	}
 
-	protected void updateCost2 (int id1, int id2, String newCost) {
+	protected void updateCost2(int id1, int id2, String newCost) {
 		Node destNode = null;
 
 		if ((id1 != id2) && (id1 == this.serverId || id2 == this.serverId)) {
@@ -359,10 +366,9 @@ public class ServerThread extends Thread {
 		else
 			System.out.print("Invalid ID");
 
-
 	}
 
-	protected void updateCost (int id1, int id2, String newCost) {
+	protected void updateCost(int id1, int id2, String newCost) {
 		Node destNode = null;
 
 		if ((id1 != id2) && (id1 == this.serverId || id2 == this.serverId)) {
@@ -378,11 +384,10 @@ public class ServerThread extends Thread {
 			else
 				rtMap.put(destNode, Integer.parseInt(newCost));
 
-
 		}
 	}
 
-	protected void displayRt () {
+	protected void displayRt() {
 		System.out.println("\nSource Server ID\tNext Hop Server\t\tCost");
 		for (Node node : nodesList) {
 			int cost = rtMap.get(node);
