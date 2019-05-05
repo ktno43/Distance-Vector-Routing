@@ -13,7 +13,7 @@
  * Distance Vector Routing Protocol.
  * 
  * ServerThread.java
- * Version 7.0
+ * Version 8.0
  ****************************************/
 import java.io.IOException;
 import java.net.DatagramPacket;
@@ -42,6 +42,7 @@ public class ServerThread extends Thread {
 	private int numPackets;
 	private Long[] timeoutArr;
 	public static final Long TIMEOUT = (long) 15000;
+	public static final int BYTE_ARRAY_SIZE = 10008;
 	private boolean crash;
 	private boolean[] firstMsg;
 	private DatagramSocket dgSocket;
@@ -61,16 +62,15 @@ public class ServerThread extends Thread {
 
 	@Override
 	public void run() {
-		try { // Try to make a server socket for the current port
-				 // start the server...
-			dgSocket = new DatagramSocket(this.listeningPort);
+		try {
+			dgSocket = new DatagramSocket(this.listeningPort); // Create a datagram socket listening on the given port
 			boolean listenFlag = true;
 
 			System.out.println("Listening for connections on port: " + this.listeningPort + "\n");
 			// and listen for connections
 
 			while (listenFlag && !crash) { // While listening
-				byte[] receiveData = new byte[5000];
+				byte[] receiveData = new byte[BYTE_ARRAY_SIZE];
 				DatagramPacket receivePacket = new DatagramPacket(receiveData, receiveData.length);
 				dgSocket.receive(receivePacket);
 				read(receivePacket.getData(), receivePacket.getLength());
@@ -83,6 +83,13 @@ public class ServerThread extends Thread {
 		}
 	}
 
+	/****************************************
+	 * checkTimeStamps- check to see if any of
+	 * the connections timed out
+	 * 
+	 * @param id-
+	 *            check id to see if it timed out
+	 ****************************************/
 	protected void checkTimeStamps(int id) {
 		long now = System.currentTimeMillis();
 		if (now - timeoutArr[id] > TIMEOUT) {
@@ -100,20 +107,31 @@ public class ServerThread extends Thread {
 		}
 	}
 
+	/****************************************
+	 * Send routing updates to neighbors
+	 * 
+	 * @return- true if routing updates were
+	 *          sent to all neighbors, and false if
+	 *          it was not
+	 ****************************************/
 	protected boolean step() {
-		int packetsSentOut = 0;
+		int packetsSentOut = 0; // Packets sent to neighbors
+
 		if (!crash) {
 			try {
 				int updateFields = nodesList.size();
-				byte[] msgByte = new byte[8 + (updateFields * 10)];
+				byte[] msgByte = new byte[8 + (updateFields * 10)]; // Size of message
 
+				// 2 bytes for update field
 				msgByte[0] = (byte) (updateFields & 0xFF);
 				msgByte[1] = (byte) ((updateFields >> 8) & 0xFF);
 
+				// 2 bytes for port
 				int serverPort = listeningPort;
 				msgByte[2] = (byte) (serverPort & 0xFF);
 				msgByte[3] = (byte) ((serverPort >> 8) & 0xFF);
 
+				// 4 bytes for ip
 				InetAddress serverIp = InetAddress.getByName(Ip);
 				byte[] serverIpB = serverIp.getAddress();
 
@@ -122,31 +140,36 @@ public class ServerThread extends Thread {
 				}
 
 				for (int j = 0; j < nodesList.size(); j++) {
+					// 4 bytes for nth ip
 					InetAddress serverIpN = InetAddress.getByName(nodesList.get(j).getIP());
 					byte[] serverIpNB = serverIpN.getAddress();
 					for (int k = 0; k < serverIpNB.length; k++)
 						msgByte[8 + (j * 10) + k] = serverIpNB[k];
 
+					// 2 bytes for nth port
 					int serverPortN = nodesList.get(j).getPort();
 					msgByte[(j * 10) + 12] = (byte) (serverPortN & 0xFF);
 					msgByte[(j * 10) + 13] = (byte) ((serverPortN >> 8) & 0xFF);
 
+					// 2 bytes for nth id
 					int serverIdN = nodesList.get(j).getID();
 					msgByte[(j * 10) + 14] = (byte) (serverIdN & 0xFF);
 					msgByte[(j * 10) + 15] = (byte) ((serverIdN >> 8) & 0xFF);
 
+					// 2 bytes for nth link cost
 					int serverCostN = rtMap.get(nodesList.get(j));
 					msgByte[(j * 10) + 16] = (byte) (serverCostN & 0xFF);
 					msgByte[(j * 10) + 17] = (byte) ((serverCostN >> 8) & 0xFF);
 
 				}
 
+				// send packets to all the neighbors
 				for (Node n : neighborsSet) {
-					if (n.getReceiveMsgs()) {
+					if (n.getReceiveMsgs()) { // If theyre able to receive messages send it to them
 						DatagramPacket msgPacket = new DatagramPacket(msgByte, msgByte.length,
-								InetAddress.getByName(n.getIP()), n.getPort());
-						dgSocket.send(msgPacket);
-						packetsSentOut += 1;
+								InetAddress.getByName(n.getIP()), n.getPort()); // Create packet
+						dgSocket.send(msgPacket); // send packet
+						packetsSentOut += 1; // Increases number of packets sent out
 					}
 				}
 			} catch (IOException e) {
@@ -154,20 +177,32 @@ public class ServerThread extends Thread {
 			}
 		}
 
-		return (neighborsSet.size() == packetsSentOut);
+		return (neighborsSet.size() == packetsSentOut); // Check to see if packets were sent to neighbors
 	}
 
+	/****************************************
+	 * disable- disable server connection to
+	 * the id
+	 * 
+	 * @param id-
+	 *            id of the server to be disabled
+	 * @return- if disable was successful
+	 ****************************************/
 	protected boolean disable(int id) {
 
 		Node toDisableNode = getNodeByID(id);
 
+		// Only disable neighbors
 		if (toDisableNode != null && neighborsSet.contains(toDisableNode)) {
 			toDisableNode.setReceiveMsgs(false);
 			updateCost(serverId, id, "inf");
 
+			// Update the cost and any hop server instances
 			for (Node n : nodesList) {
-				if (hopMap.get(n).getID() == id)
+				if (hopMap.get(n) != null && hopMap.get(n).getID() == id) {
 					updateCost(serverId, n.getID(), "inf");
+					hopMap.put(n, null);
+				}
 			}
 
 			return true;
@@ -175,46 +210,61 @@ public class ServerThread extends Thread {
 
 		else {
 			System.out.println("disable ERROR: The ID entered is not one of your neighbors.\n");
+
 			return false;
 		}
-
 	}
 
+	/****************************************
+	 * read- read the packet
+	 * 
+	 * @param msg-
+	 *            the packet
+	 * @param bytesRead-
+	 *            the # of bytes read
+	 ****************************************/
 	protected void read(byte[] msg, int bytesRead) {
 		try {
 
 			byte[] messageByte = msg;
 
+			// 2 bytes for update field
 			int high = messageByte[1] >= 0 ? messageByte[1] : 256 + messageByte[1];
 			int low = messageByte[0] >= 0 ? messageByte[0] : 256 + messageByte[0];
 			int updateFields = low | (high << 8);
 
+			// 2 bytes for port
 			high = messageByte[3] >= 0 ? messageByte[3] : 256 + messageByte[3];
 			low = messageByte[2] >= 0 ? messageByte[2] : 256 + messageByte[2];
 			int senderPort = low | (high << 8);
 
+			// 4 bytes for ip
 			String senderIp = InetAddress.getByAddress(Arrays.copyOfRange(messageByte, 4, 8)).getHostAddress();
 
-			if (getNodeByIpAndPort(senderIp, senderPort).getReceiveMsgs()) {
+			if (getNodeByIpAndPort(senderIp, senderPort).getReceiveMsgs()) { // if theyre able to receive messages
 				System.out.print("RECEIVED A MESSAGE FROM SERVER " + getNodeByIpAndPort(senderIp, senderPort).getID());
 				this.numPackets += bytesRead;
 
 				for (int j = 8; j < (10 * updateFields); j += 10) {
+					// nth ip
 					String ipN = InetAddress.getByAddress(Arrays.copyOfRange(messageByte, j, j + 4)).getHostAddress();
 
+					// nth port
 					high = messageByte[j + 5] >= 0 ? messageByte[j + 5] : 256 + messageByte[j + 5];
 					low = messageByte[j + 4] >= 0 ? messageByte[j + 4] : 256 + messageByte[j + 4];
 					int nPort = low | (high << 8);
 
+					// nth id
 					high = messageByte[j + 7] >= 0 ? messageByte[j + 7] : 256 + messageByte[j + 7];
 					low = messageByte[j + 6] >= 0 ? messageByte[j + 6] : 256 + messageByte[j + 6];
 					int nID = low | (high << 8);
 
+					// nth link cost
 					high = messageByte[j + 9] >= 0 ? messageByte[j + 9] : 256 + messageByte[j + 9];
 					low = messageByte[j + 8] >= 0 ? messageByte[j + 8] : 256 + messageByte[j + 8];
-
 					int nCost = low | (high << 8);
 
+					// Check your neighbors to see if they updated your link cost
 					for (Node n : neighborsSet) {
 						if (senderIp.equals(n.getIP()) && (senderPort == n.getPort()) && ipN.equals(serverNode.getIP())
 								&& nPort == serverNode.getPort() && (nCost < rtMap.get(n))) {
@@ -222,6 +272,7 @@ public class ServerThread extends Thread {
 						}
 					}
 
+					// Check your neighbors neighbors to see if you have a hop to anywhere else and update your link cost and hop map
 					for (int i = 0; i < rtMap.size(); i++) {
 						if (!neighborsSet.contains(getNodeByIpAndPort(ipN, nPort))) {
 							if (nCost == 65535) {
@@ -237,6 +288,7 @@ public class ServerThread extends Thread {
 						}
 					}
 
+					// Set a timeout period for all the nodes
 					for (Node n : nodesList) {
 						if (n.getIP().equals(senderIp) && n.getPort() == senderPort) {
 							timeoutArr[n.getID() - 1] = System.currentTimeMillis();
@@ -245,7 +297,7 @@ public class ServerThread extends Thread {
 
 					int senderID = getNodeByIpAndPort(senderIp, senderPort).getID();
 
-					if (!firstMsg[senderID - 1]) {
+					if (!firstMsg[senderID - 1]) { // Only execute the the thread once for each node
 						firstMsg[senderID - 1] = true;
 						Executors.newSingleThreadScheduledExecutor().scheduleAtFixedRate(() -> {
 							checkTimeStamps(senderID - 1);
@@ -262,6 +314,16 @@ public class ServerThread extends Thread {
 
 	}
 
+	/****************************************
+	 * getNodeByIpAndPort- get the node with the
+	 * corresponding ip and port
+	 * 
+	 * @param ip-
+	 *            ip of the node
+	 * @param port-
+	 *            port of the node
+	 * @return the node given the paramters
+	 ****************************************/
 	protected Node getNodeByIpAndPort(String ip, int port) {
 		for (Node n : nodesList) {
 			if (n.getIP().equals(ip) && n.getPort() == port)
@@ -271,6 +333,13 @@ public class ServerThread extends Thread {
 		return null;
 	}
 
+	/****************************************
+	 * createNodes- create nodes once you've
+	 * established which node you are
+	 * 
+	 * @param inputList-
+	 *            topology input list
+	 ****************************************/
 	protected void createNodes(List<String> inputList) {
 		int numServers = Integer.parseInt(inputList.get(0));
 
@@ -283,7 +352,7 @@ public class ServerThread extends Thread {
 
 			int cost = Integer.MAX_VALUE;
 
-			if (Integer.parseInt(inputSplitArr[0]) == serverId) {
+			if (Integer.parseInt(inputSplitArr[0]) == serverId) {// Found yourself
 				serverNode = node;
 				cost = 0;
 				hopMap.put(node, serverNode);
@@ -296,6 +365,13 @@ public class ServerThread extends Thread {
 		}
 	}
 
+	/****************************************
+	 * createNeighbors- create edges between
+	 * you and other servers
+	 * 
+	 * @param inputList-
+	 *            topology input list
+	 ****************************************/
 	protected void createNeighbors(List<String> inputList) {
 		int numServers = Integer.parseInt(inputList.get(0));
 		int numNeighbors = Integer.parseInt(inputList.get(1));
@@ -309,8 +385,8 @@ public class ServerThread extends Thread {
 
 			Node toNode = getNodeByID(toID);
 			rtMap.put(toNode, cost);
-			this.timeoutArr = new Long[numNeighbors + 2];
-			this.firstMsg = new boolean[numNeighbors + 2];
+			this.timeoutArr = new Long[numNeighbors + 2]; // Timeout array for neighbors
+			this.firstMsg = new boolean[numNeighbors + 2]; // check timestamps thread boolean
 
 			for (int j = 0; j < timeoutArr.length; j++) {
 				timeoutArr[j] = (long) -1;
@@ -322,18 +398,47 @@ public class ServerThread extends Thread {
 		}
 	}
 
+	/****************************************
+	 * setNumPackets- reset the number of
+	 * packets to the number given (0)
+	 * 
+	 * @param reset-
+	 *            the number to assign to
+	 *            the packets
+	 ****************************************/
 	protected void setNumPackets(int reset) {
 		this.numPackets = reset;
 	}
 
+	/****************************************
+	 * getNumPackets- get the number of packets
+	 * received
+	 * 
+	 * @return- number of packets received
+	 ****************************************/
 	protected int getNumPackets() {
 		return this.numPackets;
 	}
 
+	/****************************************
+	 * setCrash- toggle a crash
+	 * 
+	 * @param crash-
+	 *            set crash to the value of
+	 *            crash
+	 ****************************************/
 	protected void setCrash(boolean crash) {
 		this.crash = crash;
 	}
 
+	/****************************************
+	 * getNodeByID- get the node based on the
+	 * id
+	 * 
+	 * @param ID-
+	 *            associated id to the server
+	 * @return- the node referencing that id
+	 ****************************************/
 	private Node getNodeByID(int ID) {
 		for (Node node : nodesList) {
 			if (node.getID() == ID)
@@ -343,6 +448,20 @@ public class ServerThread extends Thread {
 		return null;
 	}
 
+	/****************************************
+	 * updateCost2- used to update the cost
+	 * between two id's. It checks to see
+	 * if they are neighbors before
+	 * updating
+	 * 
+	 * @param id1-
+	 *            server id/neighbor id
+	 * @param id2-
+	 *            server id/neighbor id
+	 * @param newCost-
+	 *            new link cost
+	 * @return- successful update or not
+	 ****************************************/
 	protected boolean updateCost2(int id1, int id2, String newCost) {
 		Node destNode = null;
 
@@ -375,6 +494,17 @@ public class ServerThread extends Thread {
 		return false;
 	}
 
+	/****************************************
+	 * updateCost- updates the cost regardless
+	 * of being neighbors or not
+	 * 
+	 * @param id1-
+	 *            server id/to update id
+	 * @param id2-
+	 *            server id/to update id
+	 * @param newCost-
+	 *            new link cost
+	 ****************************************/
 	protected void updateCost(int id1, int id2, String newCost) {
 		Node destNode = null;
 
@@ -394,6 +524,9 @@ public class ServerThread extends Thread {
 		}
 	}
 
+	/****************************************
+	 * Displays the routing table
+	 ****************************************/
 	protected void displayRt() {
 		System.out.println("\nSource Server ID\tNext Hop Server\t\tCost");
 		for (Node node : nodesList) {
@@ -406,7 +539,7 @@ public class ServerThread extends Thread {
 			if (hopMap.get(node) != null)
 				System.out.print(node.getID() + "\t\t\t" + hopMap.get(node).getID() + "\t\t\t" + costStr + "\n");
 			else
-				System.out.print(node.getID() + "\t\t\t" + this.serverId + "\t\t\t" + costStr + "\n");
+				System.out.print(node.getID() + "\t\t\t" + "?" + "\t\t\t" + costStr + "\n");
 		}
 
 		System.out.println();

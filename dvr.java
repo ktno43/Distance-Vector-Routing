@@ -13,7 +13,7 @@
  * Distance Vector Routing Protocol.
  * 
  * dvr.java
- * Version 7.0
+ * Version 8.0
  ****************************************/
 import java.io.BufferedReader;
 import java.io.IOException;
@@ -36,10 +36,29 @@ import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
 public class dvr {
-	static ServerThread server;
+	static ServerThread server; // Server thread instance
 
 	public static void main(String[] args) throws Throwable {
 		System.out.println("COMP 429 Programming Assignment #2");
+		runProgram();
+
+		System.exit(0);
+	}
+
+	/****************************************
+	 * Loop indefinitely based on user input
+	 * commands are as follow
+	 * server: server <topology file> <routing interval>, sets up topology file and routing interval
+	 * update: update <id 1> <id 2> <link cost>, updates link cost of neighbors
+	 * step: send routing updates to neighbors instantly
+	 * packets: display the number of packets received since last time called
+	 * display: display routing table
+	 * disable: disable <id>, disables link to the given server
+	 * crash: crash the server
+	 * 
+	 * @throws Throwable
+	 ****************************************/
+	private static void runProgram() throws Throwable {
 		boolean isRunning = true;
 		String userInput; // Input string
 		BufferedReader stdIn = new BufferedReader(new InputStreamReader(System.in)); // Buffered reader to read from console
@@ -55,12 +74,13 @@ public class dvr {
 				if (inputList.size() < 3 || inputList.size() > 3)
 					System.out.println("Incorrect use of command \"server\"");
 
-				else {
+				else { // Is valid input
 					if (isNumeric(inputList.get(2)) && Integer.parseInt(inputList.get(2)) > 0) {
 						String fileName = inputList.get(1);
 						int routingInterval = Integer.parseInt(inputList.get(2));
-						readTopFile(fileName);
+						readTopFile(fileName); // Read topology file
 
+						// Execute thread on timer based on routing interval
 						Executors.newSingleThreadScheduledExecutor().scheduleAtFixedRate(() -> {
 							server.step();
 
@@ -79,7 +99,7 @@ public class dvr {
 				if (inputList.size() < 4 || inputList.size() > 4)
 					System.out.println("Incorrect use of command \"update\"");
 
-				else {
+				else { // If valid parameters update the cost
 					if (isNumeric(inputList.get(1)) && isNumeric(inputList.get(2))
 							&& (inputList.get(3).equals("inf") || isNumeric(inputList.get(3)))) {
 						updateCost(Integer.parseInt(inputList.get(1)), Integer.parseInt(inputList.get(2)),
@@ -99,9 +119,9 @@ public class dvr {
 
 			case "packets":
 				System.out.println(
-						"Number of packets received since the last invocation: " + server.getNumPackets() + "\n\n");
+						"\nNumber of packets received since the last invocation: " + server.getNumPackets() + "\n\n");
 				server.setNumPackets(0);
-				System.out.println("packets SUCCESS");
+				System.out.println("packets SUCCESS\n");
 				break;
 
 			case "display":
@@ -112,7 +132,7 @@ public class dvr {
 				if (inputList.size() < 2 || inputList.size() > 2)
 					System.out.println("Incorrect use of command \"disable\"");
 
-				else {
+				else { // Is valid id
 					if (isNumeric(inputList.get(1))) {
 						disable(Integer.parseInt(inputList.get(1)));
 					}
@@ -133,10 +153,15 @@ public class dvr {
 				break;
 			}
 		}
-
-		System.exit(0);
 	}
 
+	/****************************************
+	 * readTopFile- Reads the topology file given the filename
+	 * 
+	 * @param fileName-
+	 *            name of the file
+	 * @throws Throwable
+	 ****************************************/
 	private static void readTopFile(String fileName) throws Throwable {
 		URL path = dvr.class.getResource(fileName);
 		String filePath = path.getFile();
@@ -148,19 +173,23 @@ public class dvr {
 
 			System.out.println("\nReading topology file finished\n");
 
-		} catch (IOException e) { // Error opening the file
+		} catch (IOException e) { // Try without first character in filepath (Mac)
 			try (Stream<String> inputStream = Files.lines(Paths.get(filePath), Charset.defaultCharset())) { // Attempt to read the text file given the path
 				inputList = inputStream.collect((Collectors.toList())); // Convert the stream into a list
 				createNodes(inputList);
 
 				System.out.println("\nReading topology file finished\n");
 
-			} catch (IOException e2) {
+			} catch (IOException e2) { // Error opening file
 				System.out.println("Error while trying to open the file");
 			}
 		}
 	}
 
+	/****************************************
+	 * displayRt- Displays the routing table
+	 * using the server instance
+	 ****************************************/
 	private static void displayRt() {
 		try {
 			server.displayRt();
@@ -172,7 +201,13 @@ public class dvr {
 		}
 	}
 
-	private static void step() {
+	/****************************************
+	 * step- Manually send routing updates
+	 * to neighbors right away
+	 * Success if it sends to all neighbors
+	 * Failure if it does not
+	 ****************************************/
+	private static void step() { // Step
 		if (server.step())
 			System.out.println("step SUCCESS\n");
 
@@ -181,21 +216,48 @@ public class dvr {
 		}
 	}
 
-	private static void disable(int id) {
+	/****************************************
+	 * disable- disable the server connection
+	 * to id
+	 * 
+	 * @param id-
+	 *            id to be disabled
+	 ****************************************/
+	private static void disable(int id) { // Disable given id
 		if (server.disable(id))
 			System.out.println("disable SUCCESS\n");
 	}
 
-	private static void updateCost(int id1, int id2, String cost) {
+	/****************************************
+	 * updateCost- updates the cost between
+	 * neighbors
+	 * 
+	 * @param id1-
+	 *            id of either yourself or neighbor
+	 * @param id2-
+	 *            id of either yourself or neighbor
+	 * @param cost-
+	 *            new cost
+	 ****************************************/
+	private static void updateCost(int id1, int id2, String cost) { // Update the cost between neighbors
 		if (server.updateCost2(id1, id2, cost))
 			System.out.println("update SUCCESS\n");
 	}
 
+	/****************************************
+	 * createNodes- Creates nodes after reading the topology file
+	 * nodes have a port, ip, and an id
+	 *
+	 * @param inputList-
+	 *            Topology file list
+	 * @throws Throwable
+	 ****************************************/
 	private static void createNodes(List<String> inputList) throws Throwable {
 		int numServers = Integer.parseInt(inputList.get(0));
 		String myIp = getMyLanIP();
 		String myPubIp = myIp();
 		boolean gotIp = true;
+
 		for (int i = 0; i < numServers; i++) {
 			String[] inputSplitArr = inputList.get(i + 2).split("\\s+");
 
@@ -205,7 +267,7 @@ public class dvr {
 				int myPort = Integer.parseInt(inputSplitArr[2]);
 
 				ServerThread st = new ServerThread(myPort, myID, inputSplitArr[1]);
-				server = st;
+				server = st; // Start the server listening on that port
 				st.start();
 
 				st.createNodes(inputList);
@@ -214,7 +276,13 @@ public class dvr {
 		}
 	}
 
-	private static String myIp() {
+	/****************************************
+	 * myIp- returns the public ip of host
+	 * server
+	 * 
+	 * @return
+	 ****************************************/
+	private static String myIp() { // Return public ip
 		String systemIP = ""; // String for the IP
 
 		try {
@@ -232,6 +300,14 @@ public class dvr {
 		return systemIP;
 	}
 
+	/****************************************
+	 * isNumeric- checks the string to see
+	 * if it is numeric
+	 * 
+	 * @param str-
+	 *            string to check
+	 * @return - if string is a number
+	 ****************************************/
 	private static boolean isNumeric(String str) {
 		try {
 			Integer.parseInt(str);
@@ -242,7 +318,13 @@ public class dvr {
 		}
 	}
 
-	private static String getMyLanIP() {
+	/****************************************
+	 * getMyLanIP- returns the lan ip of the
+	 * host server
+	 * 
+	 * @return- lan ip of host server
+	 ****************************************/
+	private static String getMyLanIP() { // Return lan ip
 		try {
 			Enumeration<NetworkInterface> interfaces = NetworkInterface.getNetworkInterfaces();
 			while (interfaces.hasMoreElements()) {
