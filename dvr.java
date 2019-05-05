@@ -45,7 +45,7 @@ public class dvr {
 						readTopFile(fileName);
 
 						Executors.newSingleThreadScheduledExecutor().scheduleAtFixedRate(() -> {
-							step();
+							server.step();
 
 						}, routingInterval, routingInterval, TimeUnit.SECONDS);
 
@@ -84,6 +84,7 @@ public class dvr {
 				System.out.println(
 						"Number of packets received since the last invocation: " + server.getNumPackets() + "\n\n");
 				server.setNumPackets(0);
+				System.out.println("packets SUCCESS");
 				break;
 
 			case "display":
@@ -119,7 +120,7 @@ public class dvr {
 		System.exit(0);
 	}
 
-	private static void readTopFile (String fileName) throws Throwable {
+	private static void readTopFile(String fileName) throws Throwable {
 		URL path = dvr.class.getResource(fileName);
 		String filePath = path.getFile();
 		List<String> inputList = new ArrayList<>();
@@ -143,23 +144,37 @@ public class dvr {
 		}
 	}
 
-	private static void displayRt () {
-		server.displayRt();
+	private static void displayRt() {
+		try {
+			server.displayRt();
+			System.out.println("display SUCCESS");
+		} catch (NullPointerException e) {
+			System.out.println(
+					"display: Failure to display server table. Table is null. Check config file for mistakes.");
+		}
 	}
 
-	private static void step () {
-		server.step();
+	private static void step() {
+		if (server.step())
+			System.out.println("step SUCCESS");
+
+		else {
+			System.out.println("step ERROR:");
+			System.out.println("One of the nodes in the topology is not receiving messages");
+		}
 	}
 
-	private static void disable (int id) {
-		server.disable(id);
+	private static void disable(int id) {
+		if (server.disable(id))
+			System.out.println("disable SUCCESS");
 	}
 
-	private static void updateCost (int id1, int id2, String cost) {
-		server.updateCost2(id1, id2, cost);
+	private static void updateCost(int id1, int id2, String cost) {
+		if (server.updateCost2(id1, id2, cost))
+			System.out.println("update SUCCESS");
 	}
 
-	private static void createNodes (List<String> inputList) throws Throwable {
+	private static void createNodes(List<String> inputList) throws Throwable {
 		int numServers = Integer.parseInt(inputList.get(0));
 		String myIp = getMyLanIP();
 		String myPubIp = myIp();
@@ -182,7 +197,7 @@ public class dvr {
 		}
 	}
 
-	private static String myIp () {
+	private static String myIp() {
 		String systemIP = ""; // String for the IP
 
 		try {
@@ -200,7 +215,7 @@ public class dvr {
 		return systemIP;
 	}
 
-	private static boolean isNumeric (String str) {
+	private static boolean isNumeric(String str) {
 		try {
 			Integer.parseInt(str);
 			return true;
@@ -210,7 +225,7 @@ public class dvr {
 		}
 	}
 
-	private static String getMyLanIP () {
+	private static String getMyLanIP() {
 		try {
 			Enumeration<NetworkInterface> interfaces = NetworkInterface.getNetworkInterfaces();
 			while (interfaces.hasMoreElements()) {

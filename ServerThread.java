@@ -47,7 +47,7 @@ public class ServerThread extends Thread {
 	private String Ip;
 	private int numPackets;
 	private Long[] timeoutArr;
-	public static final Long TIMEOUT = (long) 50000;
+	public static final Long TIMEOUT = (long) 15000;
 	private boolean crash;
 	private boolean[] firstMsg;
 	private DatagramSocket dgSocket;
@@ -106,7 +106,8 @@ public class ServerThread extends Thread {
 		}
 	}
 
-	protected void step() {
+	protected boolean step() {
+		int packetsSentOut = 0;
 		if (!crash) {
 			try {
 				int updateFields = nodesList.size();
@@ -151,15 +152,18 @@ public class ServerThread extends Thread {
 						DatagramPacket msgPacket = new DatagramPacket(msgByte, msgByte.length,
 								InetAddress.getByName(n.getIP()), n.getPort());
 						dgSocket.send(msgPacket);
+						packetsSentOut += 1;
 					}
 				}
 			} catch (IOException e) {
-				// do nothin
+				// do nothing
 			}
 		}
+
+		return ((nodesList.size() - 1) == packetsSentOut);
 	}
 
-	protected void disable(int id) {
+	protected boolean disable(int id) {
 
 		Node toDisableNode = getNodeByID(id);
 
@@ -171,6 +175,14 @@ public class ServerThread extends Thread {
 				if (hopMap.get(n).getID() == id)
 					updateCost(serverId, n.getID(), "inf");
 			}
+
+			return true;
+		}
+
+		else {
+			System.out.println("disable ERROR:");
+			System.out.println("The ID entered is not one of your neighbors.");
+			return false;
 		}
 
 	}
@@ -341,7 +353,7 @@ public class ServerThread extends Thread {
 		return null;
 	}
 
-	protected void updateCost2(int id1, int id2, String newCost) {
+	protected boolean updateCost2(int id1, int id2, String newCost) {
 		Node destNode = null;
 
 		if ((id1 != id2) && (id1 == this.serverId || id2 == this.serverId)) {
@@ -358,14 +370,21 @@ public class ServerThread extends Thread {
 				else
 					rtMap.put(destNode, Integer.parseInt(newCost));
 
+				return true;
 			}
 
-			else
-				System.out.print("Not a neighbor");
+			else {
+				System.out.print("update ERROR:");
+				System.out.print("The ID entered is not a neighbor.");
+			}
 		}
-		else
-			System.out.print("Invalid ID");
 
+		else {
+			System.out.print("update ERROR:");
+			System.out.print("Invalid ID");
+		}
+
+		return false;
 	}
 
 	protected void updateCost(int id1, int id2, String newCost) {
