@@ -160,7 +160,7 @@ public class ServerThread extends Thread {
 			}
 		}
 
-		return ((nodesList.size() - 1) == packetsSentOut);
+		return (neighborsSet.size() == packetsSentOut);
 	}
 
 	protected boolean disable(int id) {
@@ -180,8 +180,7 @@ public class ServerThread extends Thread {
 		}
 
 		else {
-			System.out.println("disable ERROR:");
-			System.out.println("The ID entered is not one of your neighbors.");
+			System.out.println("disable ERROR: The ID entered is not one of your neighbors.\n");
 			return false;
 		}
 
@@ -374,14 +373,12 @@ public class ServerThread extends Thread {
 			}
 
 			else {
-				System.out.print("update ERROR:");
-				System.out.print("The ID entered is not a neighbor.");
+				System.out.println("update ERROR: The ID entered is not a neighbor.\n");
 			}
 		}
 
 		else {
-			System.out.print("update ERROR:");
-			System.out.print("Invalid ID");
+			System.out.println("update ERROR: Invalid ID.\n");
 		}
 
 		return false;

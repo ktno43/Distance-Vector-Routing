@@ -147,31 +147,30 @@ public class dvr {
 	private static void displayRt() {
 		try {
 			server.displayRt();
-			System.out.println("display SUCCESS");
+			System.out.println("display SUCCESS\n");
 		} catch (NullPointerException e) {
 			System.out.println(
-					"display: Failure to display server table. Table is null. Check config file for mistakes.");
+					"display ERROR: Failure to display server table. Table is null. Check config file for mistakes.\n");
 		}
 	}
 
 	private static void step() {
 		if (server.step())
-			System.out.println("step SUCCESS");
+			System.out.println("step SUCCESS\n");
 
 		else {
-			System.out.println("step ERROR:");
-			System.out.println("One of the nodes in the topology is not receiving messages");
+			System.out.println("step ERROR: One of your neighbors in the topology is not receiving messages\n");
 		}
 	}
 
 	private static void disable(int id) {
 		if (server.disable(id))
-			System.out.println("disable SUCCESS");
+			System.out.println("disable SUCCESS\n");
 	}
 
 	private static void updateCost(int id1, int id2, String cost) {
 		if (server.updateCost2(id1, id2, cost))
-			System.out.println("update SUCCESS");
+			System.out.println("update SUCCESS\n");
 	}
 
 	private static void createNodes(List<String> inputList) throws Throwable {
