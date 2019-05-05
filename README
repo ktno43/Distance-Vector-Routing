@@ -1,17 +1,26 @@
-Project 1 Chat Program
+Project 2 Chat Program
 
 Installation:
-javac Chat.java
+javac dvr.java
+
+Topology Configuration:
+Make sure the .txt file is within the same directory where you javac dvr.java
 
 Run:
-java Chat <Port>
-Where <Port> is the desired port to run on.
+java dvr 
+
+Program Instructions:
+	 * server: server <topology file> <routing interval>, sets up topology file and routing interval
+	 * update: update <id 1> <id 2> <link cost>, updates link cost of neighbors
+	 * step: send routing updates to neighbors instantly
+	 * packets: display the number of packets received since last time called
+	 * display: display routing table
+	 * disable: disable <id>, disables link to the given server
+	 * crash: crash the server
 
 Contribution:
-As a whole the project was very much a group effort. 
-Generally speaking, everyone participated in everything.
 If the work were to be split then:
-  Kyle Nguyen: Basic socket connection, Termination and exiting, Exception Handling, cleanup
-  Kodi Winterer: Distrubution of tasks into seperate threads, some cleanup.
+  Kyle Nguyen: 
+  Kodi Winterer: 
   
-  https://github.com/ktno43/Chat-Application
+https://github.com/ktno43/Distance-Vector-Routing
