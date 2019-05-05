@@ -13,7 +13,7 @@
  * Distance Vector Routing Protocol.
  * 
  * ServerThread.java
- * Version 8.0
+ * Version 9.0
  ****************************************/
 import java.io.IOException;
 import java.net.DatagramPacket;
@@ -41,11 +41,12 @@ public class ServerThread extends Thread {
 	private String Ip;
 	private int numPackets;
 	private Long[] timeoutArr;
-	public static final Long TIMEOUT = (long) 15000;
-	public static final int BYTE_ARRAY_SIZE = 10008;
 	private boolean crash;
 	private boolean[] firstMsg;
 	private DatagramSocket dgSocket;
+	
+	public static final Long TIMEOUT = (long) 15000;
+	public static final int BYTE_ARRAY_SIZE = 10008;
 
 	public ServerThread(int listenPort, int id, String ip) {
 		this.listeningPort = listenPort; // Set the listening port
@@ -241,7 +242,7 @@ public class ServerThread extends Thread {
 			// 4 bytes for ip
 			String senderIp = InetAddress.getByAddress(Arrays.copyOfRange(messageByte, 4, 8)).getHostAddress();
 
-			if (getNodeByIpAndPort(senderIp, senderPort).getReceiveMsgs()) { // if theyre able to receive messages
+			if (getNodeByIpAndPort(senderIp, senderPort).getReceiveMsgs()) { // if they're able to receive messages
 				System.out.print("RECEIVED A MESSAGE FROM SERVER " + getNodeByIpAndPort(senderIp, senderPort).getID());
 				this.numPackets += bytesRead;
 
@@ -322,7 +323,7 @@ public class ServerThread extends Thread {
 	 *            ip of the node
 	 * @param port-
 	 *            port of the node
-	 * @return the node given the paramters
+	 * @return the node given the parameters
 	 ****************************************/
 	protected Node getNodeByIpAndPort(String ip, int port) {
 		for (Node n : nodesList) {

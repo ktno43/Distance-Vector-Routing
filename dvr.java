@@ -13,7 +13,7 @@
  * Distance Vector Routing Protocol.
  * 
  * dvr.java
- * Version 8.0
+ * Version 9.0
  ****************************************/
 import java.io.BufferedReader;
 import java.io.IOException;
@@ -72,7 +72,7 @@ public class dvr {
 
 			case "server":
 				if (inputList.size() < 3 || inputList.size() > 3)
-					System.out.println("Incorrect use of command \"server\"");
+					System.out.println("Incorrect use of command \"server\"\n");
 
 				else { // Is valid input
 					if (isNumeric(inputList.get(2)) && Integer.parseInt(inputList.get(2)) > 0) {
@@ -89,7 +89,7 @@ public class dvr {
 					}
 
 					else {
-						System.out.println("Routing-update interval is not a number");
+						System.out.println("Routing-update interval is not a number\n");
 					}
 				}
 
@@ -97,7 +97,7 @@ public class dvr {
 
 			case "update":
 				if (inputList.size() < 4 || inputList.size() > 4)
-					System.out.println("Incorrect use of command \"update\"");
+					System.out.println("Incorrect use of command \"update\"\n");
 
 				else { // If valid parameters update the cost
 					if (isNumeric(inputList.get(1)) && isNumeric(inputList.get(2))
@@ -107,7 +107,7 @@ public class dvr {
 					}
 
 					else {
-						System.out.println("Server ID's specified or link cost may not be a number");
+						System.out.println("Server ID's specified or link cost may not be a number\n");
 					}
 				}
 
@@ -130,7 +130,7 @@ public class dvr {
 
 			case "disable":
 				if (inputList.size() < 2 || inputList.size() > 2)
-					System.out.println("Incorrect use of command \"disable\"");
+					System.out.println("Incorrect use of command \"disable\"\n");
 
 				else { // Is valid id
 					if (isNumeric(inputList.get(1))) {
@@ -138,7 +138,7 @@ public class dvr {
 					}
 
 					else
-						System.out.println("Server ID is incorrect");
+						System.out.println("Server ID is incorrect\n");
 				}
 
 				break;
@@ -181,7 +181,7 @@ public class dvr {
 				System.out.println("\nReading topology file finished\n");
 
 			} catch (IOException e2) { // Error opening file
-				System.out.println("Error while trying to open the file");
+				System.out.println("Error while trying to open the file\n");
 			}
 		}
 	}
