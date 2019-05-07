@@ -1,7 +1,9 @@
+
 /*-
  ****************************************
  * Kyle Nguyen
  * Kodi Winterer
+ * Michael Shi
  * 
  * COMP 429
  * Spring 2019
@@ -13,7 +15,7 @@
  * Distance Vector Routing Protocol.
  * 
  * ServerThread.java
- * Version 9.0
+ * Version 10.0
  ****************************************/
 import java.io.IOException;
 import java.net.DatagramPacket;
@@ -44,7 +46,7 @@ public class ServerThread extends Thread {
 	private boolean crash;
 	private boolean[] firstMsg;
 	private DatagramSocket dgSocket;
-	
+
 	public static final Long TIMEOUT = (long) 15000;
 	public static final int BYTE_ARRAY_SIZE = 10008;
 
@@ -268,7 +270,7 @@ public class ServerThread extends Thread {
 					// Check your neighbors to see if they updated your link cost
 					for (Node n : neighborsSet) {
 						if (senderIp.equals(n.getIP()) && (senderPort == n.getPort()) && ipN.equals(serverNode.getIP())
-								&& nPort == serverNode.getPort() && (nCost < rtMap.get(n))) {
+								&& nPort == serverNode.getPort()) {
 							rtMap.put(n, nCost);
 						}
 					}
@@ -281,7 +283,7 @@ public class ServerThread extends Thread {
 								hopMap.put(getNodeByIpAndPort(ipN, nPort), null);
 							}
 
-							else if (nCost < rtMap.get(getNodeByIpAndPort(ipN, nPort))) {
+							else if (rtMap.get(getNodeByIpAndPort(ipN, nPort)) != 0) {
 								updateCost(this.serverId, getNodeByIpAndPort(ipN, nPort).getID(),
 										Integer.toString(nCost));
 								hopMap.put(getNodeByIpAndPort(ipN, nPort), getNodeByIpAndPort(senderIp, senderPort));

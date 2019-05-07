@@ -2,6 +2,7 @@
  ****************************************
  * Kyle Nguyen
  * Kodi Winterer
+ * Michael Shi
  * 
  * COMP 429
  * Spring 2019
@@ -13,7 +14,7 @@
  * Distance Vector Routing Protocol.
  * 
  * dvr.java
- * Version 9.0
+ * Version 10.0
  ****************************************/
 import java.io.BufferedReader;
 import java.io.IOException;
