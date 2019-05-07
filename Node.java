@@ -14,7 +14,7 @@
  * Distance Vector Routing Protocol.
  * 
  * Node.java
- * Version 10.0
+ * Version 11.0
  ****************************************/
 
 public class Node {

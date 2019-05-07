@@ -1,4 +1,3 @@
-
 /*-
  ****************************************
  * Kyle Nguyen
@@ -15,7 +14,7 @@
  * Distance Vector Routing Protocol.
  * 
  * ServerThread.java
- * Version 10.0
+ * Version 11.0
  ****************************************/
 import java.io.IOException;
 import java.net.DatagramPacket;
@@ -478,6 +477,12 @@ public class ServerThread extends Thread {
 			if (neighborsSet.contains(destNode)) {
 				if (newCost.equals("inf"))
 					rtMap.put(destNode, Integer.MAX_VALUE);
+
+				else if (Integer.parseInt(newCost) <= 0) {
+					System.out.println("update ERROR: Cost is less than or equal to 0.\n");
+
+					return false;
+				}
 
 				else
 					rtMap.put(destNode, Integer.parseInt(newCost));
