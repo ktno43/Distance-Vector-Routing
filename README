@@ -19,11 +19,11 @@ Program Instructions:
 	 * crash: crash the server
 
 Contribution:
-It was a group effort since we were both discussing how to code certain portions of the project.  We would be discussing through voice giving insight on how to handle certain features.
+It was a group effort since we were both discussing how to code certain portions of the project.  We would be discussing through voice giving insight on how to handle certain features and or pointing out what problems may have occured.
 
 If the work were to be split then:
-  Kyle Nguyen: Topology file establishment, routing updates, message format, server commands(server, update, step, packets, display, disable, crash, some server responses/output handling, cleanup, documentation.
+  Kyle Nguyen: Topology file establishment, routing updates, message format, server commands(server, update, step, packets, display, disable, crash, some server responses/output handling, cleanup, comments/documentation).
   
-  Kodi Winterer: Connection to other neighbors to send routing updates to, timeout period, and some server responses/output handling.
+  Kodi Winterer: Connection to other neighbors to send routing updates, timeout period(disable and crash), and some server responses/output handling.
   
 https://github.com/ktno43/Distance-Vector-Routing
