@@ -4,7 +4,7 @@ Installation:
 javac dvr.java
 
 Topology Configuration:
-Make sure the .txt file is within the same directory where you javac dvr.java
+Make sure the <topology configuration> .txt file is within the same directory where you javac dvr.java
 
 Run:
 java dvr 
@@ -19,8 +19,11 @@ Program Instructions:
 	 * crash: crash the server
 
 Contribution:
+It was a group effort since we were both discussing how to code certain portions of the project.  We would be discussing through voice giving insight on how to handle certain features.
+
 If the work were to be split then:
-  Kyle Nguyen: 
-  Kodi Winterer: 
+  Kyle Nguyen: Topology file establishment, routing updates, message format, server commands(server, update, step, packets, display, disable, crash, some server responses/output handling, cleanup, documentation.
+  
+  Kodi Winterer: Connection to other neighbors to send routing updates to, timeout period, and some server responses/output handling.
   
 https://github.com/ktno43/Distance-Vector-Routing
